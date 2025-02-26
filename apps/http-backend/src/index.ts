@@ -3,12 +3,13 @@ import jwt from "jsonwebtoken"
 import { Request, Response } from "express";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { middleware } from "./middleware";
-import {createUserSchema} from "@repo/common/types"
+import {createUserSchema, signinSchema} from "@repo/common/types"
 import { prismaClient } from "@repo/db/client"
 
 const app = express();
+app.use(express.json())
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
 
     const {success} = createUserSchema.safeParse(req.body);
     if(!success){
@@ -16,19 +17,54 @@ app.post("/signup", (req, res) => {
         return;
     }
 
+    const user = await prismaClient.user.create({
+        data: {
+            email: req.body.email,
+            password: req.body.password,
+            name: req.body.name,
+            photo: "https://unsplash.com/photos/a-man-wearing-glasses-and-a-black-shirt-iEEBWgY_6lA",
+        }
+    })
+    
+
+    if(!user){
+        res.status(400).json({message: "user already exist"});
+    }
+
+    const token = jwt.sign({
+        userId: user.id
+    }, JWT_SECRET)
+
     res.json({
-        userId: 1234
+        token: token
     })
 })
 
-app.post("/signin", (req, res) => {
-    const userId = 1;
-    jwt.sign({
-        userId
+app.post("/signin", async (req, res) => {
+    const {success} = signinSchema.safeParse(req.body);
+
+    if(!success){
+        res.status(400).json({message: "Incorrect inputs"});
+        return;
+    }
+
+    const user = await prismaClient.user.findFirst({
+        where: {
+            email: req.body.email
+        }
+    })
+
+    if(!user || user.password != req.body.password){
+        res.status(400).json({message: "Invalid user or password"});
+        return;
+    }
+
+    const token = jwt.sign({
+        userId: user.id
     }, JWT_SECRET);
 
     res.json({
-        userId: 1234
+        token: token
     })  
 })
 
