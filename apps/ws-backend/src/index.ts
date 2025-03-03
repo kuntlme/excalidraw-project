@@ -1,9 +1,9 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import jwt, { decode, JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config"
-import { prismaClient} from "@repo/db/client"
+import { prismaClient } from "@repo/db/client"
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 5000 });
 
 interface user {
   userId: string;
@@ -59,41 +59,49 @@ wss.on('connection', function connection(ws, request) {
     // {type: "JOIN_ROOM", roomId: 1}
     // {type: "LEAVE ROOM", roomId: 1}
     // {type: "CHAT", message:"hey", roomId: 1}
-    const parsedData = JSON.parse(data as unknown as string);  
+    const parsedData = JSON.parse(data as unknown as string);
     //join room
-    if(parsedData.type =="JOIN_ROOM"){
+    if (parsedData.type == "JOIN_ROOM") {
       const user = users.find(x => x.ws === ws);
-      if(!user){
+      if (!user) {
         return;
       }
+
+      // Ensure `user.rooms` is initialized as an array
+      // if (!Array.isArray(user.rooms)) {
+      //   user.rooms = [];
+      // }
+
       user.rooms.push(parsedData.roomId);
     }
 
     //exit room
-    if(parsedData.type =="LEAVE ROOM"){
+    if (parsedData.type == "LEAVE ROOM") {
       const user = users.find(x => x.ws === ws);
-      if(!user){
+      if (!user) {
         return;
       }
-      user.rooms.filter(x => x === parsedData.roomId);
+      user.rooms = user.rooms.filter(x => x != parsedData.roomId);
+
     }
 
     //chat 
-    if(parsedData.type =="CHAT"){
+    if (parsedData.type == "CHAT") {
       const roomId = parsedData.roomId;
       const message = parsedData.message;
 
       //make chat in database
-      await prismaClient.chat.create({
-        data:{
-          roomId: roomId,
-          message: message,
-          userId: userId
-        }
-      })
+      // await prismaClient.chat.create({
+      //   data:{
+      //     roomId: roomId,
+      //     message: message,
+      //     userId: userId
+      //   }
+      // })
       //spread the chat to others
       users.forEach(user => {
-        if(user.rooms.includes(parsedData.roomId)){
+        if (user.rooms.includes(parsedData.roomId)) {
+          console.log("enter")
           user.ws.send(JSON.stringify({
             type: "CHAT",
             message: message,

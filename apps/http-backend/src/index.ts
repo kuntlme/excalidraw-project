@@ -17,6 +17,17 @@ app.post("/signup", async (req, res) => {
         return;
     }
 
+    const existUser = await prismaClient.user.findFirst({
+        where: {
+            email: req.body.email
+        }
+    })
+
+    if(existUser){
+        res.json({ message: "user already exist" });
+        return;
+    }
+
     const user = await prismaClient.user.create({
         data: {
             email: req.body.email,
@@ -29,6 +40,7 @@ app.post("/signup", async (req, res) => {
 
     if (!user) {
         res.status(400).json({ message: "user already exist" });
+        return;
     }
 
     const token = jwt.sign({
@@ -111,6 +123,6 @@ app.post("/room", middleware, async (req: Request, res: Response) => {
     return;
 })
 
-app.listen(3000, () => {
+app.listen(8080, () => {
     console.log("listening the port");
 })
