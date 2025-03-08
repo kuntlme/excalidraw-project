@@ -56,9 +56,9 @@ wss.on('connection', function connection(ws, request) {
 
 
   ws.on('message', async function message(data) {
-    // {type: "JOIN_ROOM", roomId: 1}
-    // {type: "LEAVE ROOM", roomId: 1}
-    // {type: "CHAT", message:"hey", roomId: 1}
+    // {"type": "JOIN_ROOM", "roomId": "1"}
+    // {"type": "LEAVE ROOM", "roomId": "1"}
+    // {"type": "CHAT", "message":"hey", "roomId": "1"}
     const parsedData = JSON.parse(data as unknown as string);
     //join room
     if (parsedData.type == "JOIN_ROOM") {
