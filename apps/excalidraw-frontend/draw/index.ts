@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { json } from "stream/consumers";
 
 interface shape {
     type: "rectrangle" | "circle";
@@ -13,13 +15,24 @@ interface InitDrowProps {
 }
 
 export default function initDraw(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
+    const existingShape: shape[] = []; 
     const ctx = canvas.getContext("2d");
-
-    const existingShape: shape[] = [];
 
     if (!ctx) {
         return;
     }
+
+    //get shape from socket
+        if(socket){
+            socket.onmessage = (event) => {
+                const parsedData = JSON.parse(event.data);
+                if(parsedData.type === "CHAT"){
+                    existingShape.push(parsedData.message);
+                    getClear(canvas, ctx, existingShape)
+
+                }
+            }
+        }    
 
     let clicked = false;
     let vertexX = 0;
@@ -29,12 +42,12 @@ export default function initDraw(canvas: HTMLCanvasElement, roomId: string, sock
         clicked = true;
         vertexX = e.clientX;
         vertexY = e.clientY;
-        console.log("down " + e.clientX + "," + e.clientY);
+        // console.log("down " + e.clientX + "," + e.clientY);
     })
 
     canvas.addEventListener("mouseup", (e) => {
         clicked = false;
-        console.log("up " + e.clientX + "," + e.clientY);
+        // console.log("up " + e.clientX + "," + e.clientY);
         let width = e.clientX - vertexX;
         let height = e.clientY - vertexY;
         existingShape.push({
@@ -44,6 +57,19 @@ export default function initDraw(canvas: HTMLCanvasElement, roomId: string, sock
             width: width,
             heigh: height
         })
+        
+        // send to to the socket
+        socket.send(JSON.stringify({
+            type: "CHAT",
+            message: {
+                type: "rectrangle",
+                x: vertexX,
+                y: vertexY,
+                width: width,
+                heigh: height
+            },
+            roomId: roomId
+        }))
     })
 
     canvas.addEventListener("mousemove", (e) => {
@@ -53,7 +79,7 @@ export default function initDraw(canvas: HTMLCanvasElement, roomId: string, sock
             getClear(canvas, ctx, existingShape)
             ctx.strokeRect(vertexX, vertexY, width, height)
         }
-        console.log("move " + e.clientX + "," + e.clientY);
+        // console.log("move " + e.clientX + "," + e.clientY);
     })
 }
 

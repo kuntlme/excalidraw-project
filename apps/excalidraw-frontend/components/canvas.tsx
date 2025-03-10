@@ -21,7 +21,7 @@ function Canvas({ roomId, socket }: CanvasPrps) {
 
     return (
         <div>
-            <canvas ref={canvasRef} width={700} height={700}></canvas>
+            <canvas ref={canvasRef} width={700} height={700} className='border border-red-500'></canvas>
         </div>
     )
 }

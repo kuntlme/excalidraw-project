@@ -3,30 +3,36 @@ import useSocket from '@/hooks/socket'
 import React, { useEffect, useState } from 'react'
 import Canvas from './canvas';
 
-function RoomCanvas({roomId}: {roomId: string}) {
-    const {socket, loading} = useSocket();
-    const [currentMessage, setCurrentMessage] =  useState<string>("")
+function RoomCanvas({ roomId }: { roomId: string }) {
+  const { socket, loading } = useSocket();
 
-    useEffect(() => {
-      if(socket && !loading){
-        socket.onmessage = (event) => {
-          const message = JSON.parse(event.data.message);
-          setCurrentMessage(message)
-        }
-      }
+  useEffect(() => {
+    if (socket && !loading) {
 
-    }, [socket])
+      socket.send(JSON.stringify({
+        type: "JOIN_ROOM",
+        roomId: roomId
+      }))
 
-    if(!socket){
-      return (
-        <div>
-          connecting to ws server.......
-        </div>
-      )
+      // socket.onmessage = (event) => {
+      //   const message = JSON.parse(event.data.message);
+      //   setCurrentMessage(message)
+      // }
+      console.log("joined");
     }
+
+  }, [socket])
+
+  if (!socket) {
+    return (
+      <div>
+        connecting to ws server.......
+      </div>
+    )
+  }
   return (
     <div>
-      <Canvas roomId={roomId} socket={socket}/>
+      <Canvas roomId={roomId} socket={socket} />
     </div>
   )
 }
