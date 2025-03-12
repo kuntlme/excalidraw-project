@@ -1,4 +1,4 @@
-import { shapetype, TypeShape } from "./canvas";
+import { shapetype, typeColor, TypeShape } from "./canvas";
 
 
 export class Shape {
@@ -8,6 +8,7 @@ export class Shape {
     private startY: number = 0;
     private currentX: number = 0;
     private currentY: number = 0;
+    private strockColor: typeColor = "#f7f9f9";
 
 
     constructor(ctx: CanvasRenderingContext2D) {
@@ -17,6 +18,10 @@ export class Shape {
     setShape(shape: TypeShape) {
         this.typeShape = shape;
         console.log(this.typeShape)
+    }
+
+    setStrockColor(strockColor: typeColor){
+        this.strockColor = strockColor;
     }
 
     setStartVertex(vertexX: number, vertexY: number) {
@@ -31,6 +36,9 @@ export class Shape {
     }
 
     makeShape() {
+        if (this.ctx) {
+            this.ctx.strokeStyle = this.strockColor;
+        }
         switch (this.typeShape) {
             case "rectangle": {
                 this.makeRect();
@@ -82,7 +90,8 @@ export class Shape {
                     radius: radius,
                     startAngle: 0,
                     endAngle: 2 * Math.PI,
-                    clockDirection: true
+                    clockDirection: true,
+                    strockColor: this.strockColor
                 }
                 break;
             }
@@ -92,7 +101,8 @@ export class Shape {
                     x: this.startX,
                     y: this.startY,
                     width: this.currentX - this.startX,
-                    height: this.currentY - this.startY
+                    height: this.currentY - this.startY,
+                    strockColor: this.strockColor
                 }
                 break;
             }
@@ -103,6 +113,7 @@ export class Shape {
                     movetoY: this.startY,
                     linetoX: this.currentX,
                     linetoY: this.currentY,
+                    strockColor: this.strockColor
                 }
             }
         }

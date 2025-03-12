@@ -6,6 +6,7 @@ export type shapetype = {
     y: number;
     width: number;
     height: number;
+    strockColor: typeColor
 } | {
     type: "circle";
     x: number;
@@ -14,18 +15,19 @@ export type shapetype = {
     startAngle: number;
     endAngle: number;
     clockDirection: boolean;
-
+    strockColor: typeColor
 } | {
     type: "line",
     movetoX: number,
     movetoY: number,
     linetoX: number,
     linetoY: number,
-
-
+    strockColor: typeColor
 }
 
 export type TypeShape = "circle" | "rectangle" | "line";
+
+export type typeColor = "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d";
 
 export class MakeCanvas {
     private canvas: HTMLCanvasElement;
@@ -36,16 +38,18 @@ export class MakeCanvas {
     private shape: Shape;
     private clicked: boolean = false;
     private selectedShape: TypeShape;
+    private strokeColor: typeColor = "#f7f9f9";
 
     private clientId: string = Math.random().toString(36).substr(2, 9);
 
     constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
+        this.ctx.strokeStyle = this.strokeColor;
         this.existingShape = [];
         this.roomId = roomId;
         this.socket = socket;
-        this.selectedShape = "circle";
+        this.selectedShape = "rectangle";
         this.shape = new Shape(this.ctx);
         this.shape.setShape(this.selectedShape);
 
@@ -73,6 +77,12 @@ export class MakeCanvas {
     setTool = (tool: TypeShape) => {
         this.selectedShape = tool;
         this.shape.setShape(this.selectedShape);
+    }
+
+    setStrockColor = (strokeColor: typeColor) => {
+        this.strokeColor = strokeColor;
+        this.ctx.strokeStyle = this.strokeColor;
+        this.shape.setStrockColor(this.strokeColor);
     }
 
     handleMouseDown = (event: MouseEvent) => {
@@ -112,6 +122,7 @@ export class MakeCanvas {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         console.log(this.existingShape)
         this.existingShape.map((s) => {
+            this.ctx.strokeStyle = s.strockColor;
             switch (s.type) {
                 case "circle": {
                     this.ctx?.beginPath();
