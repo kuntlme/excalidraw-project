@@ -23,21 +23,27 @@ function Canvas({ roomId, socket }: CanvasPrps) {
         <div className='w-screen h-screen overflow-hidden'>
             <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className='border border-red-500 block'></canvas>
             <div className='fixed top-2 left-1/2 flex gap-2'>
-            <button className='p-2 bg-green-500 rounded-xl' onClick={() => {
-                if(selectedCanvasRef.current){
-                    selectedCanvasRef.current.setTool('circle');
-                }
-                console.log("clicked circle")
+                <button className='p-2 bg-green-500 rounded-xl' onClick={() => {
+                    if (selectedCanvasRef.current) {
+                        selectedCanvasRef.current.setTool('circle');
+                    }
+                    console.log("clicked circle")
                 }}>circle</button>
-            <button className='p-2 bg-red-500 rounded-xl' onClick={() => {
-                if(selectedCanvasRef.current){
-                    selectedCanvasRef.current.setTool("rectangle");
-                }
+                <button className='p-2 bg-red-500 rounded-xl' onClick={() => {
+                    if (selectedCanvasRef.current) {
+                        selectedCanvasRef.current.setTool("rectangle");
+                    }
 
-                console.log("clicked rect")
+                    console.log("clicked rect")
+                }}>rect</button>
+                <button className='p-2 bg-purple-500 rounded-xl' onClick={() => {
+                    if (selectedCanvasRef.current) {
+                        selectedCanvasRef.current.setTool("line");
+                    }
+                    console.log("clicked line")
                 }}>rect</button>
             </div>
-            
+
 
         </div>
     )

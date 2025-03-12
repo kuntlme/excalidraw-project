@@ -1,6 +1,5 @@
-import { shapetype } from "./canvas";
+import { shapetype, TypeShape } from "./canvas";
 
-type TypeShape = "circle" | "rectangle";
 
 export class Shape {
     private ctx: CanvasRenderingContext2D | null = null;
@@ -41,6 +40,15 @@ export class Shape {
                 this.makeCircle();
                 break;
             }
+            case "line": {
+                this.ctx?.beginPath();
+                this.ctx?.moveTo(this.startX, this.startY);
+                this.ctx?.lineTo(this.currentX, this.currentY);
+                // Draw the Path
+                this.ctx?.stroke();
+                this.ctx?.closePath();
+
+            }
         }
     }
 
@@ -61,7 +69,7 @@ export class Shape {
     }
 
     getShape() {
-        let shapObject: shapetype | null = null; 
+        let shapObject: shapetype | null = null;
         switch (this.typeShape) {
             case "circle": {
                 let centerX = (this.currentX + this.startX) / 2;
@@ -87,6 +95,15 @@ export class Shape {
                     height: this.currentY - this.startY
                 }
                 break;
+            }
+            case "line": {
+                shapObject = {
+                    type: "line",
+                    movetoX: this.startX,
+                    movetoY: this.startY,
+                    linetoX: this.currentX,
+                    linetoY: this.currentY,
+                }
             }
         }
         return shapObject;
