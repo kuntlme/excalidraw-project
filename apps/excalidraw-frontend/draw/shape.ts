@@ -1,3 +1,5 @@
+import { shapetype } from "./canvas";
+
 type TypeShape = "circle" | "rectangle";
 
 export class Shape {
@@ -59,12 +61,13 @@ export class Shape {
     }
 
     getShape() {
+        let shapObject: shapetype | null = null; 
         switch (this.typeShape) {
             case "circle": {
                 let centerX = (this.currentX + this.startX) / 2;
                 let centerY = (this.currentY + this.startY) / 2;
                 let radius = Math.abs(centerX - this.startX);
-                return ({
+                shapObject = {
                     type: "circle",
                     x: centerX,
                     y: centerY,
@@ -72,20 +75,21 @@ export class Shape {
                     startAngle: 0,
                     endAngle: 2 * Math.PI,
                     clockDirection: true
-                })
+                }
                 break;
             }
             case "rectangle": {
-                return ({
+                shapObject = {
                     type: "rectangle",
                     x: this.startX,
                     y: this.startY,
                     width: this.currentX - this.startX,
                     height: this.currentY - this.startY
-                })
+                }
                 break;
             }
         }
+        return shapObject;
 
     }
 
