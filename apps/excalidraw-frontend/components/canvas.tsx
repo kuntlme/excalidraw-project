@@ -1,5 +1,4 @@
 "use client"
-import initDraw from '@/draw';
 import { MakeCanvas } from '@/draw/canvas';
 import React, { useEffect, useRef, useState } from 'react'
 
