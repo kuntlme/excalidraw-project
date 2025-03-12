@@ -15,13 +15,12 @@ export class Shape {
 
     setShape(shape: TypeShape) {
         this.typeShape = shape;
+        console.log(this.typeShape)
     }
 
     setStartVertex(vertexX: number, vertexY: number) {
         this.startX = vertexX;
         this.startY = vertexY;
-        console.log(this.startX + " , " + this.startY);
-
     }
 
     setCurrentVertex(vertexX: number, vertexY: number) {
@@ -56,6 +55,7 @@ export class Shape {
         this.ctx?.beginPath();
         this.ctx?.arc(centerX, centerY, radius, 0, 2 * Math.PI, true);
         this.ctx?.stroke();
+        this.ctx?.closePath();
     }
 
     getShape() {
@@ -73,6 +73,7 @@ export class Shape {
                     endAngle: 2 * Math.PI,
                     clockDirection: true
                 })
+                break;
             }
             case "rectangle": {
                 return ({
@@ -82,6 +83,7 @@ export class Shape {
                     width: this.currentX - this.startX,
                     height: this.currentY - this.startY
                 })
+                break;
             }
         }
 

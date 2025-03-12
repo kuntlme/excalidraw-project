@@ -24,8 +24,14 @@ function Canvas({ roomId, socket }: CanvasPrps) {
     return (
         <div>
             <canvas ref={canvasRef} width={700} height={700} className='border border-red-500'></canvas>
-            <button className='p-2 bg-red-500 rounded-xl' onClick={() => selectedCanvas?.setTool("rectangle")}>rect</button>
-            <button className='p-2 bg-green-500 rounded-xl' onClick={() => selectedCanvas?.setTool("circle")}>circle</button>
+            <button className='p-2 bg-green-500 rounded-xl' onClick={() => {
+                selectedCanvas?.setTool("circle")
+                console.log("clicked circle")
+                }}>circle</button>
+            <button className='p-2 bg-red-500 rounded-xl' onClick={() => {
+                selectedCanvas?.setTool("rectangle")
+                console.log("clicked rect")
+                }}>rect</button>
 
         </div>
     )

@@ -13,16 +13,11 @@ type shapetype = {
     radius: number;
     startAngle: number;
     endAngle: number;
-    clockDirection: number;
+    clockDirection: boolean;
 
 }
 
 type TypeShape = "circle" | "rectangle";
-
-interface InitDrowProps {
-    canvas: HTMLCanvasElement;
-    roomId: string;
-}
 
 export class MakeCanvas {
     private canvas: HTMLCanvasElement;
@@ -32,7 +27,7 @@ export class MakeCanvas {
     private socket: WebSocket;
     private shape: Shape;
     private clicked: boolean = false;
-    private selectedShape: TypeShape = "rectangle";
+    private selectedShape: TypeShape;
 
     constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
         this.canvas = canvas;
@@ -40,9 +35,10 @@ export class MakeCanvas {
         this.existingShape = [];
         this.roomId = roomId;
         this.socket = socket;
+        this.selectedShape = "rectangle";
         this.shape = new Shape(this.ctx);
         this.shape.setShape(this.selectedShape);
-        this.init();
+        // this.init();
         this.initSocket();
         this.mousehandler();
     }
@@ -63,10 +59,10 @@ export class MakeCanvas {
         }
     }
 
-    setTool(tool: TypeShape) {
+    setTool = (tool: TypeShape)  => {
         this.selectedShape = tool;
         console.log(this.selectedShape);
-        this.shape.setShape(this.selectedShape);
+        this.shape.setShape(tool);
     }
 
     handleMouseDown = (event: MouseEvent) => {
@@ -78,6 +74,7 @@ export class MakeCanvas {
         this.clicked = false;
         this.shape.setCurrentVertex(event.clientX, event.clientY);
         const currentShape = this.shape.getShape() as shapetype;
+        console.log(currentShape)
         this.existingShape.push(currentShape);
         this.socket.send(JSON.stringify({
             type: "CHAT",
@@ -102,12 +99,15 @@ export class MakeCanvas {
 
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        console.log(this.existingShape)
         this.existingShape.map((s) => {
+            console.log(s.type)
             switch (s.type) {
                 case "circle": {
                     this.ctx?.beginPath();
                     this.ctx?.arc(s.x, s.y, s.radius, 0, 2 * Math.PI, true);
                     this.ctx?.stroke();
+                    this.ctx.closePath();
                     break;
                 }
                 case "rectangle": {
