@@ -22,7 +22,7 @@ function Canvas({ roomId, socket }: CanvasPrps) {
     return (
         <div className='w-screen h-screen overflow-hidden'>
             <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className='border border-red-500 block'></canvas>
-            <div className='fixed top-2 left-1/2 flex gap-2'>
+            <div className='fixed top-2 left-1/2 flex gap-2 bg-stone-600'>
                 <button className='p-2 bg-green-500 rounded-xl' onClick={() => {
                     if (selectedCanvasRef.current) {
                         selectedCanvasRef.current.setTool('circle');
