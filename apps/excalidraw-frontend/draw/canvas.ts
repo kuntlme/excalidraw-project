@@ -126,6 +126,7 @@ export class MakeCanvas {
                     message: currentShape,
                     roomId: this.roomId
                 }))
+                this.shape.setStartVertex(event.clientX, event.clientY);
             }
         }
     }
