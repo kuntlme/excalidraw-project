@@ -20,7 +20,7 @@ export class Shape {
         console.log(this.typeShape)
     }
 
-    setStrockColor(strockColor: typeColor){
+    setStrockColor(strockColor: typeColor) {
         this.strockColor = strockColor;
     }
 
@@ -49,13 +49,13 @@ export class Shape {
                 break;
             }
             case "line": {
-                this.ctx?.beginPath();
-                this.ctx?.moveTo(this.startX, this.startY);
-                this.ctx?.lineTo(this.currentX, this.currentY);
-                // Draw the Path
-                this.ctx?.stroke();
-                this.ctx?.closePath();
+                this.makeLine();
+                break;
 
+            }
+            case "pencil": {
+                this.makeLine();
+                break;
             }
         }
     }
@@ -72,6 +72,15 @@ export class Shape {
         let radius = Math.abs(centerX - this.startX);
         this.ctx?.beginPath();
         this.ctx?.arc(centerX, centerY, radius, 0, 2 * Math.PI, true);
+        this.ctx?.stroke();
+        this.ctx?.closePath();
+    }
+
+    makeLine() {
+        this.ctx?.beginPath();
+        this.ctx?.moveTo(this.startX, this.startY);
+        this.ctx?.lineTo(this.currentX, this.currentY);
+        // Draw the Path
         this.ctx?.stroke();
         this.ctx?.closePath();
     }
@@ -109,6 +118,16 @@ export class Shape {
             case "line": {
                 shapObject = {
                     type: "line",
+                    movetoX: this.startX,
+                    movetoY: this.startY,
+                    linetoX: this.currentX,
+                    linetoY: this.currentY,
+                    strockColor: this.strockColor
+                }
+            }
+            case "pencil": {
+                shapObject = {
+                    type: "pencil",
                     movetoX: this.startX,
                     movetoY: this.startY,
                     linetoX: this.currentX,

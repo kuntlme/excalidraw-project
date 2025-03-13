@@ -10,7 +10,7 @@ interface CanvasPrps {
 function Canvas({ roomId, socket }: CanvasPrps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const selectedCanvasRef = useRef<MakeCanvas | null>(null);
-    const[selectedShape, setSelectedShape] = useState< "circle" | "rectangle" | "line" >("rectangle");
+    const[selectedShape, setSelectedShape] = useState< "circle" | "rectangle" | "line" | "pencil">("rectangle");
     const[selectedStrockColor, setSelectedStrockColor] = useState< "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d" >("#f7f9f9");
 
 
@@ -50,6 +50,14 @@ function Canvas({ roomId, socket }: CanvasPrps) {
                     }
                     console.log("clicked line")
                 }}>line</button>
+                <button className='p-1 rounded-md hover:bg-zinc-700 text-white' onClick={() => {
+                    if (selectedCanvasRef.current) {
+                        selectedCanvasRef.current.setTool("pencil");
+                        setSelectedShape("pencil")
+
+                    }
+                    console.log("clicked pencil")
+                }}>pencil</button>
             </div>
 
 

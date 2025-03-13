@@ -23,9 +23,16 @@ export type shapetype = {
     linetoX: number,
     linetoY: number,
     strockColor: typeColor
+} | {
+    type: "pencil",
+    movetoX: number,
+    movetoY: number,
+    linetoX: number,
+    linetoY: number,
+    strockColor: typeColor
 }
 
-export type TypeShape = "circle" | "rectangle" | "line";
+export type TypeShape = "circle" | "rectangle" | "line" | "pencil";
 
 export type typeColor = "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d";
 
@@ -109,6 +116,17 @@ export class MakeCanvas {
             this.shape.setCurrentVertex(event.clientX, event.clientY);
             this.redrawCanvas();
             this.shape.makeShape();
+            if (this.selectedShape === "pencil") {
+                const currentShape = this.shape.getShape() as shapetype;
+                console.log("currentShape ", currentShape);
+                this.existingShape.push(currentShape);
+                this.redrawCanvas()
+                this.socket.send(JSON.stringify({
+                    type: "CHAT",
+                    message: currentShape,
+                    roomId: this.roomId
+                }))
+            }
         }
     }
 
@@ -143,6 +161,14 @@ export class MakeCanvas {
                     this.ctx.stroke();
                     this.ctx.closePath();
 
+                }
+                case "pencil": {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(s.movetoX, s.movetoY);
+                    this.ctx.lineTo(s.linetoX, s.linetoY);
+                    // Draw the Path
+                    this.ctx.stroke();
+                    this.ctx.closePath();
                 }
             }
         })
