@@ -10,14 +10,18 @@ interface CanvasPrps {
 function Canvas({ roomId, socket }: CanvasPrps) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const selectedCanvasRef = useRef<MakeCanvas | null>(null);
-    const[selectedShape, setSelectedShape] = useState< "circle" | "rectangle" | "line" | "pencil">("rectangle");
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const selectedTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+    const[selectedShape, setSelectedShape] = useState< "circle" | "rectangle" | "line" | "pencil" | "text">("rectangle");
     const[selectedStrockColor, setSelectedStrockColor] = useState< "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d" >("#f7f9f9");
 
 
     useEffect(() => {
         const canvas = canvasRef.current
-        if (canvas && !selectedCanvasRef.current) {
-            const newcanvas = new MakeCanvas(canvas, roomId, socket);
+        const textarea = textareaRef.current;
+        if (canvas && !selectedCanvasRef.current && textarea) {
+            const newcanvas = new MakeCanvas(canvas, roomId, textarea, socket);
             selectedCanvasRef.current = newcanvas;
         }
     }, [roomId, socket])
@@ -58,6 +62,14 @@ function Canvas({ roomId, socket }: CanvasPrps) {
                     }
                     console.log("clicked pencil")
                 }}>pencil</button>
+                <button className='p-1 rounded-md hover:bg-zinc-700 text-white' onClick={() => {
+                    if (selectedCanvasRef.current) {
+                        selectedCanvasRef.current.setTool("text");
+                        setSelectedShape("text")
+
+                    }
+                    console.log("clicked text")
+                }}>text</button>
             </div>
 
 
@@ -86,7 +98,14 @@ function Canvas({ roomId, socket }: CanvasPrps) {
                         setSelectedStrockColor("#58d68d");
                     }
                 }}></div>
+                <input type="range" min={1} max={5} defaultValue={2} onChange={(e) => {
+                    if(selectedCanvasRef.current){
+                        console.log(e.target.value)
+                        selectedCanvasRef.current.setTextSize(Number(e.target.value));
+                    }
+                }}/>
             </div>
+            <textarea ref={textareaRef} name="" id=""  className='fixed top-0 left-0 p-0 h-auto resize'></textarea>
 
 
         </div>

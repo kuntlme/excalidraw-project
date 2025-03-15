@@ -8,6 +8,8 @@ export class Shape {
     private startY: number = 0;
     private currentX: number = 0;
     private currentY: number = 0;
+    private text: string = "";
+    private textSize: number = 2;
     private strockColor: typeColor = "#f7f9f9";
 
 
@@ -35,6 +37,14 @@ export class Shape {
         // this.clicked = false;
     }
 
+    setText(text: string) {
+        this.text = text;
+    }
+
+    setTextSize(textSize: number){
+        this.textSize = textSize;
+    }
+
     makeShape() {
         if (this.ctx) {
             this.ctx.strokeStyle = this.strockColor;
@@ -56,6 +66,9 @@ export class Shape {
             case "pencil": {
                 this.makeLine();
                 break;
+            }
+            case "text": {
+                this.makeText();
             }
         }
     }
@@ -83,6 +96,13 @@ export class Shape {
         // Draw the Path
         this.ctx?.stroke();
         this.ctx?.closePath();
+    }
+
+    makeText() {
+        if (this.ctx) {
+            this.ctx.font = `${this.textSize * 15}px serif`;
+        }
+        this.ctx?.fillText(this.text, this.currentX, this.currentY);
     }
 
     getShape() {
@@ -124,6 +144,7 @@ export class Shape {
                     linetoY: this.currentY,
                     strockColor: this.strockColor
                 }
+                break;
             }
             case "pencil": {
                 shapObject = {
@@ -134,6 +155,18 @@ export class Shape {
                     linetoY: this.currentY,
                     strockColor: this.strockColor
                 }
+                break;
+            }
+            case "text": {
+                shapObject = {
+                    type: "text",
+                    content: this.text,
+                    x: this.startX,
+                    y: this.startY,
+                    size: this.textSize,
+                    fillColor: this.strockColor
+                }
+                break;
             }
         }
         return shapObject;

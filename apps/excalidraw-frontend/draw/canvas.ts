@@ -30,9 +30,16 @@ export type shapetype = {
     linetoX: number,
     linetoY: number,
     strockColor: typeColor
+} | {
+    type: "text",
+    content: string,
+    x: number,
+    y: number,
+    size: number,
+    fillColor: typeColor
 }
 
-export type TypeShape = "circle" | "rectangle" | "line" | "pencil";
+export type TypeShape = "circle" | "rectangle" | "line" | "pencil" | "text";
 
 export type typeColor = "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d";
 
@@ -46,10 +53,12 @@ export class MakeCanvas {
     private clicked: boolean = false;
     private selectedShape: TypeShape;
     private strokeColor: typeColor = "#f7f9f9";
+    private textarea: HTMLTextAreaElement;
+
 
     private clientId: string = Math.random().toString(36).substr(2, 9);
 
-    constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
+    constructor(canvas: HTMLCanvasElement, roomId: string, textarea: HTMLTextAreaElement, socket: WebSocket) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
         this.ctx.strokeStyle = this.strokeColor;
@@ -59,6 +68,7 @@ export class MakeCanvas {
         this.selectedShape = "rectangle";
         this.shape = new Shape(this.ctx);
         this.shape.setShape(this.selectedShape);
+        this.textarea = textarea;
 
         // this.init();
         this.initSocket();
@@ -92,23 +102,53 @@ export class MakeCanvas {
         this.shape.setStrockColor(this.strokeColor);
     }
 
+    setText(){
+        this.shape.setText(this.textarea.value);
+        this.textarea.style.height = "auto";
+        this.textarea.style.height = `${this.textarea.scrollHeight}px`
+    }
+
+    setTextSize(textSize: number) {
+        this.shape.setTextSize(textSize)
+        this.textarea.style.fontSize = `${textSize * 15}px`
+    }
+
     handleMouseDown = (event: MouseEvent) => {
-        this.clicked = true;
+        if (this.selectedShape != "text") {
+            this.clicked = true;
+        }
         this.shape.setStartVertex(event.clientX, event.clientY);
+        if (this.selectedShape === "text") {
+            this.textarea.style.top = `${event.offsetY}px`;
+            this.textarea.style.left = `${event.offsetX}px`;
+            this.textarea.style.position = "absolute"
+            this.textarea.style.display = "block"
+            // Delay focusing to ensure the textarea is rendered
+            setTimeout(() => {
+                this.textarea.focus();
+            }, 0);
+
+
+        }
     }
 
     handleMouseUp = (event: MouseEvent) => {
-        this.clicked = false;
-        this.shape.setCurrentVertex(event.clientX, event.clientY);
-        const currentShape = this.shape.getShape() as shapetype;
-        console.log("currentShape ", currentShape);
-        this.existingShape.push(currentShape);
-        this.redrawCanvas()
-        this.socket.send(JSON.stringify({
-            type: "CHAT",
-            message: currentShape,
-            roomId: this.roomId
-        }))
+        if (this.selectedShape != "text") {
+            this.clicked = false;
+            this.shape.setCurrentVertex(event.clientX, event.clientY);
+            const currentShape = this.shape.getShape() as shapetype;
+            console.log("currentShape ", currentShape);
+            debugger
+            this.existingShape.push(currentShape);
+
+            this.redrawCanvas()
+            this.socket.send(JSON.stringify({
+                type: "CHAT",
+                message: currentShape,
+                roomId: this.roomId
+            }))
+        }
+
     }
 
     handleMouseMove = (event: MouseEvent) => {
@@ -131,19 +171,39 @@ export class MakeCanvas {
         }
     }
 
+    handleKeydown = (event: KeyboardEvent) => {
+        if (this.selectedShape === "text") {
+            if (event.key === "Enter") {
+                this.setText();
+                const currentShape = this.shape.getShape() as shapetype;
+                console.log("currentShape ", currentShape);
+                this.existingShape.push(currentShape);
+                this.textarea.blur();
+                this.textarea.value = "";
+                this.redrawCanvas()
+                this.socket.send(JSON.stringify({
+                    type: "CHAT",
+                    message: currentShape,
+                    roomId: this.roomId
+                }))
+            }
+        }
+    }
+
     mousehandler() {
         this.canvas.addEventListener("mousedown", this.handleMouseDown);
         this.canvas.addEventListener("mouseup", this.handleMouseUp);
         this.canvas.addEventListener("mousemove", this.handleMouseMove);
+        this.textarea.addEventListener("keydown", this.handleKeydown)
     }
 
     redrawCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         console.log(this.existingShape)
         this.existingShape.map((s) => {
-            this.ctx.strokeStyle = s.strockColor;
             switch (s.type) {
                 case "circle": {
+                    this.ctx.strokeStyle = s.strockColor;
                     this.ctx?.beginPath();
                     this.ctx?.arc(s.x, s.y, s.radius, 0, 2 * Math.PI, true);
                     this.ctx?.stroke();
@@ -151,25 +211,37 @@ export class MakeCanvas {
                     break;
                 }
                 case "rectangle": {
+                    this.ctx.strokeStyle = s.strockColor;
                     this.ctx.strokeRect(s.x, s.y, s.width, s.height);
                     break;
                 }
                 case "line": {
+                    this.ctx.strokeStyle = s.strockColor;
                     this.ctx.beginPath();
                     this.ctx.moveTo(s.movetoX, s.movetoY);
                     this.ctx.lineTo(s.linetoX, s.linetoY);
                     // Draw the Path
                     this.ctx.stroke();
                     this.ctx.closePath();
-
+                    break;
                 }
                 case "pencil": {
+                    this.ctx.strokeStyle = s.strockColor;
                     this.ctx.beginPath();
                     this.ctx.moveTo(s.movetoX, s.movetoY);
                     this.ctx.lineTo(s.linetoX, s.linetoY);
                     // Draw the Path
                     this.ctx.stroke();
                     this.ctx.closePath();
+                    break;
+                }
+                case "text": {
+                    this.ctx.fillStyle = s.fillColor;
+                    if (this.ctx) {
+                        this.ctx.font = `${s.size * 15}px serif`;
+                    }
+                    this.ctx.fillText(s.content, s.x, s.y);
+                    break;
                 }
             }
         })
