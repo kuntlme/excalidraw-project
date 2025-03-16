@@ -98,6 +98,7 @@ function Canvas({ roomId, socket }: CanvasPrps) {
                         setSelectedStrockColor("#58d68d");
                     }
                 }}></div>
+            <p className='text-xl font-bold'>Text-size</p>
                 <input type="range" min={1} max={5} defaultValue={2} onChange={(e) => {
                     if(selectedCanvasRef.current){
                         console.log(e.target.value)
@@ -105,7 +106,7 @@ function Canvas({ roomId, socket }: CanvasPrps) {
                     }
                 }}/>
             </div>
-            <textarea ref={textareaRef} name="" id=""  className='fixed top-0 left-0 p-0 h-auto resize'></textarea>
+            <textarea ref={textareaRef} name="" id=""  rows={1} cols={1} className='fixed top-0 left-0 p-0 h-auto resize-none  outline-none whitespace-nowrap font-serif'></textarea>
 
 
         </div>

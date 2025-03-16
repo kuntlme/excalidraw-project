@@ -69,7 +69,7 @@ export class MakeCanvas {
         this.shape = new Shape(this.ctx);
         this.shape.setShape(this.selectedShape);
         this.textarea = textarea;
-
+        this.initTextarea();
         // this.init();
         this.initSocket();
         this.mousehandler();
@@ -91,6 +91,13 @@ export class MakeCanvas {
         }
     }
 
+    initTextarea = () => {
+        this.textarea.style.color = this.strokeColor;
+        this.textarea.style.fontSize = "30px";
+        this.textarea.style.font = "serif";
+        this.textarea.style.height = "auto";
+    }
+
     setTool = (tool: TypeShape) => {
         this.selectedShape = tool;
         this.shape.setShape(this.selectedShape);
@@ -100,9 +107,11 @@ export class MakeCanvas {
         this.strokeColor = strokeColor;
         this.ctx.strokeStyle = this.strokeColor;
         this.shape.setStrockColor(this.strokeColor);
+
+        this.textarea.style.color = this.strokeColor;
     }
 
-    setText(){
+    setText() {
         this.shape.setText(this.textarea.value);
         this.textarea.style.height = "auto";
         this.textarea.style.height = `${this.textarea.scrollHeight}px`
@@ -119,8 +128,27 @@ export class MakeCanvas {
         }
         this.shape.setStartVertex(event.clientX, event.clientY);
         if (this.selectedShape === "text") {
+
+        //     this.textarea.style.cssText = `
+        //     position: absolute;
+        //     background: transparent;
+        //     border: none;
+        //     outline: none;
+        //     color: white;
+        //     font-size: 20px;
+        //     font-family: serif;
+        //     padding: 0;
+        //     resize: none;
+        //     overflow: hidden;
+        //     white-space: nowrap;
+        //     top: ${event.offsetY}px;
+        //     left: ${event.offsetX}px;
+        // `;
+        //     this.textarea.style.display = "block";
+
             this.textarea.style.top = `${event.offsetY}px`;
             this.textarea.style.left = `${event.offsetX}px`;
+            this.textarea.value = "";
             this.textarea.style.position = "absolute"
             this.textarea.style.display = "block"
             // Delay focusing to ensure the textarea is rendered
@@ -179,7 +207,7 @@ export class MakeCanvas {
                 console.log("currentShape ", currentShape);
                 this.existingShape.push(currentShape);
                 this.textarea.blur();
-                this.textarea.value = "";
+                this.textarea.style.display = "none";
                 this.redrawCanvas()
                 this.socket.send(JSON.stringify({
                     type: "CHAT",
@@ -190,11 +218,20 @@ export class MakeCanvas {
         }
     }
 
+    handleTextareaSize = () => {
+        this.textarea.style.height = "auto";
+        this.textarea.style.height = `${this.textarea.scrollHeight}px`;
+        this.textarea.style.width = "auto";
+        this.textarea.style.width  =`${this.textarea.scrollWidth}px`;
+        this.textarea.style.overflow = "hidden";
+    }
+
     mousehandler() {
         this.canvas.addEventListener("mousedown", this.handleMouseDown);
         this.canvas.addEventListener("mouseup", this.handleMouseUp);
         this.canvas.addEventListener("mousemove", this.handleMouseMove);
         this.textarea.addEventListener("keydown", this.handleKeydown)
+        this.textarea.addEventListener("input", this.handleTextareaSize)
     }
 
     redrawCanvas() {
@@ -240,7 +277,9 @@ export class MakeCanvas {
                     if (this.ctx) {
                         this.ctx.font = `${s.size * 15}px serif`;
                     }
-                    this.ctx.fillText(s.content, s.x, s.y);
+                    this.ctx.textBaseline = "top";
+                    const textOffset = s.size * 15 * 0.8;
+                    this.ctx.fillText(s.content, s.x, s.y + textOffset);
                     break;
                 }
             }

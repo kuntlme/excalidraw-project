@@ -101,8 +101,10 @@ export class Shape {
     makeText() {
         if (this.ctx) {
             this.ctx.font = `${this.textSize * 15}px serif`;
+            this.ctx.textBaseline = "top";
         }
-        this.ctx?.fillText(this.text, this.currentX, this.currentY);
+        const textOffset = this.textSize * 15 * 0.8;
+        this.ctx?.fillText(this.text, this.currentX, this.currentY + textOffset);
     }
 
     getShape() {
