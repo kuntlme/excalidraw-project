@@ -103,7 +103,7 @@ export class Shape {
             this.ctx.font = `${this.textSize * 15}px serif`;
             this.ctx.textBaseline = "top";
         }
-        const textOffset = this.textSize * 15 * 0.8;
+        const textOffset = this.textSize * 15 * 0.323;
         this.ctx?.fillText(this.text, this.currentX, this.currentY + textOffset);
     }
 

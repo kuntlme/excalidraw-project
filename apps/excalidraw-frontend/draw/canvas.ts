@@ -51,9 +51,16 @@ export class MakeCanvas {
     private socket: WebSocket;
     private shape: Shape;
     private clicked: boolean = false;
+    private panClicked: boolean = false;
     private selectedShape: TypeShape;
     private strokeColor: typeColor = "#f7f9f9";
     private textarea: HTMLTextAreaElement;
+    private startOffsetX: number = 0;
+    private startOffsetY: number = 0;
+    private currentOffsetX: number = 0;
+    private currentOffsetY: number = 0;
+    private panOffsetX: number;
+    private panOffsetY: number;
 
 
     private clientId: string = Math.random().toString(36).substr(2, 9);
@@ -65,10 +72,15 @@ export class MakeCanvas {
         this.existingShape = [];
         this.roomId = roomId;
         this.socket = socket;
+
+        this.panOffsetX = 0;
+        this.panOffsetY = 0;
+
         this.selectedShape = "rectangle";
         this.shape = new Shape(this.ctx);
         this.shape.setShape(this.selectedShape);
         this.textarea = textarea;
+
         this.initTextarea();
         // this.init();
         this.initSocket();
@@ -122,81 +134,101 @@ export class MakeCanvas {
         this.textarea.style.fontSize = `${textSize * 15}px`
     }
 
+    makeOffset() {
+        let panX = this.currentOffsetX - this.startOffsetX;
+        let panY = this.currentOffsetY - this.startOffsetY;
+        this.panOffsetX = this.panOffsetX + panX;
+        this.panOffsetY = this.panOffsetY + panY;
+
+        this.redrawCanvas();
+
+        console.log("{" + this.panOffsetX + ", " + this.panOffsetY + "}");
+    }
+
     handleMouseDown = (event: MouseEvent) => {
-        if (this.selectedShape != "text") {
-            this.clicked = true;
+        if (event.button === 1) {
+            this.panClicked = true;
+            this.startOffsetX = event.clientX;
+            this.startOffsetY = event.clientY;
+            console.log("enter")
+        } else {
+            if (this.selectedShape != "text") {
+                this.clicked = true;
+            }
+            this.shape.setStartVertex(event.clientX, event.clientY);
+            if (this.selectedShape === "text") {
+                this.textarea.style.top = `${event.offsetY}px`;
+                this.textarea.style.left = `${event.offsetX}px`;
+                this.textarea.value = "";
+                this.textarea.style.position = "absolute"
+                this.textarea.style.display = "block"
+                // Delay focusing to ensure the textarea is rendered
+                setTimeout(() => {
+                    this.textarea.focus();
+                }, 0);
+
+
+            }
         }
-        this.shape.setStartVertex(event.clientX, event.clientY);
-        if (this.selectedShape === "text") {
 
-        //     this.textarea.style.cssText = `
-        //     position: absolute;
-        //     background: transparent;
-        //     border: none;
-        //     outline: none;
-        //     color: white;
-        //     font-size: 20px;
-        //     font-family: serif;
-        //     padding: 0;
-        //     resize: none;
-        //     overflow: hidden;
-        //     white-space: nowrap;
-        //     top: ${event.offsetY}px;
-        //     left: ${event.offsetX}px;
-        // `;
-        //     this.textarea.style.display = "block";
-
-            this.textarea.style.top = `${event.offsetY}px`;
-            this.textarea.style.left = `${event.offsetX}px`;
-            this.textarea.value = "";
-            this.textarea.style.position = "absolute"
-            this.textarea.style.display = "block"
-            // Delay focusing to ensure the textarea is rendered
-            setTimeout(() => {
-                this.textarea.focus();
-            }, 0);
-
-
-        }
     }
 
     handleMouseUp = (event: MouseEvent) => {
-        if (this.selectedShape != "text") {
-            this.clicked = false;
-            this.shape.setCurrentVertex(event.clientX, event.clientY);
-            const currentShape = this.shape.getShape() as shapetype;
-            console.log("currentShape ", currentShape);
-            debugger
-            this.existingShape.push(currentShape);
-
-            this.redrawCanvas()
-            this.socket.send(JSON.stringify({
-                type: "CHAT",
-                message: currentShape,
-                roomId: this.roomId
-            }))
-        }
-
-    }
-
-    handleMouseMove = (event: MouseEvent) => {
-        if (this.clicked) {
-            this.shape.setCurrentVertex(event.clientX, event.clientY);
-            this.redrawCanvas();
-            this.shape.makeShape();
-            if (this.selectedShape === "pencil") {
+        if (event.button === 1) {
+            this.currentOffsetX = event.clientX;
+            this.currentOffsetY = event.clientY;
+            this.makeOffset();
+            this.panClicked = false;
+        } else {
+            if (this.selectedShape != "text") {
+                this.clicked = false;
+                this.shape.setCurrentVertex(event.clientX, event.clientY);
                 const currentShape = this.shape.getShape() as shapetype;
                 console.log("currentShape ", currentShape);
+                debugger
                 this.existingShape.push(currentShape);
+
                 this.redrawCanvas()
                 this.socket.send(JSON.stringify({
                     type: "CHAT",
                     message: currentShape,
                     roomId: this.roomId
                 }))
-                this.shape.setStartVertex(event.clientX, event.clientY);
             }
         }
+
+
+    }
+
+    handleMouseMove = (event: MouseEvent) => {
+        if (this.panClicked) {
+            console.log("enter2");
+            this.currentOffsetX = event.clientX;
+            this.currentOffsetY = event.clientY;
+            this.makeOffset();
+            this.startOffsetX = event.clientX;
+            this.startOffsetY = event.clientY;
+        }
+        else {
+            if (this.clicked) {
+                this.shape.setCurrentVertex(event.clientX, event.clientY);
+                this.redrawCanvas();
+                this.shape.makeShape();
+                if (this.selectedShape === "pencil") {
+                    const currentShape = this.shape.getShape() as shapetype;
+                    console.log("currentShape ", currentShape);
+                    this.existingShape.push(currentShape);
+                    this.redrawCanvas()
+                    this.socket.send(JSON.stringify({
+                        type: "CHAT",
+                        message: currentShape,
+                        roomId: this.roomId
+                    }))
+                    this.shape.setStartVertex(event.clientX, event.clientY);
+                }
+            }
+        }
+
     }
 
     handleKeydown = (event: KeyboardEvent) => {
@@ -222,7 +254,7 @@ export class MakeCanvas {
         this.textarea.style.height = "auto";
         this.textarea.style.height = `${this.textarea.scrollHeight}px`;
         this.textarea.style.width = "auto";
-        this.textarea.style.width  =`${this.textarea.scrollWidth}px`;
+        this.textarea.style.width = `${this.textarea.scrollWidth}px`;
         this.textarea.style.overflow = "hidden";
     }
 
@@ -235,7 +267,11 @@ export class MakeCanvas {
     }
 
     redrawCanvas() {
+        this.ctx.save();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset the transform
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.translate(this.panOffsetX, this.panOffsetY);
+
         console.log(this.existingShape)
         this.existingShape.map((s) => {
             switch (s.type) {
@@ -278,12 +314,13 @@ export class MakeCanvas {
                         this.ctx.font = `${s.size * 15}px serif`;
                     }
                     this.ctx.textBaseline = "top";
-                    const textOffset = s.size * 15 * 0.8;
+                    const textOffset = s.size * 15 * 0.323;
                     this.ctx.fillText(s.content, s.x, s.y + textOffset);
                     break;
                 }
             }
         })
+        this.ctx.restore();
     }
 
 }
