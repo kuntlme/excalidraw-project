@@ -12,9 +12,19 @@ export class Shape {
     private textSize: number = 2;
     private strockColor: typeColor = "#f7f9f9";
 
+    private panOffsetX: number;
+    private panOffsetY: number;
 
-    constructor(ctx: CanvasRenderingContext2D) {
+
+    constructor(ctx: CanvasRenderingContext2D, panOffsetX: number, panOffsetY: number) {
         this.ctx = ctx;
+        this.panOffsetX = panOffsetX;
+        this.panOffsetY = panOffsetY;
+    }
+
+    setPanOffset(panOffsetX: number, panOffsetY: number){
+        this.panOffsetX = panOffsetX;
+        this.panOffsetY = panOffsetY;
     }
 
     setShape(shape: TypeShape) {
@@ -111,13 +121,13 @@ export class Shape {
         let shapObject: shapetype | null = null;
         switch (this.typeShape) {
             case "circle": {
-                let centerX = (this.currentX + this.startX) / 2;
+                let centerX = ((this.currentX + this.startX) / 2);
                 let centerY = (this.currentY + this.startY) / 2;
                 let radius = Math.abs(centerX - this.startX);
                 shapObject = {
                     type: "circle",
-                    x: centerX,
-                    y: centerY,
+                    x: centerX - this.panOffsetX,
+                    y: centerY - this.panOffsetY,
                     radius: radius,
                     startAngle: 0,
                     endAngle: 2 * Math.PI,
@@ -129,8 +139,8 @@ export class Shape {
             case "rectangle": {
                 shapObject = {
                     type: "rectangle",
-                    x: this.startX,
-                    y: this.startY,
+                    x: this.startX - this.panOffsetX,
+                    y: this.startY - this.panOffsetY,
                     width: this.currentX - this.startX,
                     height: this.currentY - this.startY,
                     strockColor: this.strockColor
@@ -140,10 +150,10 @@ export class Shape {
             case "line": {
                 shapObject = {
                     type: "line",
-                    movetoX: this.startX,
-                    movetoY: this.startY,
-                    linetoX: this.currentX,
-                    linetoY: this.currentY,
+                    movetoX: this.startX - this.panOffsetX,
+                    movetoY: this.startY - this.panOffsetY,
+                    linetoX: this.currentX - this.panOffsetX,
+                    linetoY: this.currentY - this.panOffsetY,
                     strockColor: this.strockColor
                 }
                 break;
@@ -151,10 +161,10 @@ export class Shape {
             case "pencil": {
                 shapObject = {
                     type: "pencil",
-                    movetoX: this.startX,
-                    movetoY: this.startY,
-                    linetoX: this.currentX,
-                    linetoY: this.currentY,
+                    movetoX: this.startX - this.panOffsetX,
+                    movetoY: this.startY - this.panOffsetY,
+                    linetoX: this.currentX - this.panOffsetX,
+                    linetoY: this.currentY - this.panOffsetY,
                     strockColor: this.strockColor
                 }
                 break;
@@ -163,8 +173,8 @@ export class Shape {
                 shapObject = {
                     type: "text",
                     content: this.text,
-                    x: this.startX,
-                    y: this.startY,
+                    x: this.startX - this.panOffsetX,
+                    y: this.startY - this.panOffsetY,
                     size: this.textSize,
                     fillColor: this.strockColor
                 }

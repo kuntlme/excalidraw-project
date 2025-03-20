@@ -77,7 +77,7 @@ export class MakeCanvas {
         this.panOffsetY = 0;
 
         this.selectedShape = "rectangle";
-        this.shape = new Shape(this.ctx);
+        this.shape = new Shape(this.ctx, this.panOffsetX, this.panOffsetY);
         this.shape.setShape(this.selectedShape);
         this.textarea = textarea;
 
@@ -139,6 +139,7 @@ export class MakeCanvas {
         let panY = this.currentOffsetY - this.startOffsetY;
         this.panOffsetX = this.panOffsetX + panX;
         this.panOffsetY = this.panOffsetY + panY;
+        this.shape.setPanOffset(this.panOffsetX, this.panOffsetY);
 
         this.redrawCanvas();
 
@@ -146,11 +147,11 @@ export class MakeCanvas {
     }
 
     handleMouseDown = (event: MouseEvent) => {
+        console.log("clicked {" + event.clientX + ", " + event.clientY + "}");
         if (event.button === 1) {
             this.panClicked = true;
             this.startOffsetX = event.clientX;
             this.startOffsetY = event.clientY;
-            console.log("enter")
         } else {
             if (this.selectedShape != "text") {
                 this.clicked = true;
@@ -202,7 +203,6 @@ export class MakeCanvas {
 
     handleMouseMove = (event: MouseEvent) => {
         if (this.panClicked) {
-            console.log("enter2");
             this.currentOffsetX = event.clientX;
             this.currentOffsetY = event.clientY;
             this.makeOffset();
@@ -270,6 +270,9 @@ export class MakeCanvas {
         this.ctx.save();
         this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset the transform
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.restore();
+
+        this.ctx.save();
         this.ctx.translate(this.panOffsetX, this.panOffsetY);
 
         console.log(this.existingShape)
