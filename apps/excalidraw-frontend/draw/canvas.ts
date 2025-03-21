@@ -1,3 +1,4 @@
+import { eventNames } from "process";
 import { Shape } from "./shape";
 
 export type shapetype = {
@@ -39,6 +40,11 @@ export type shapetype = {
     fillColor: typeColor
 }
 
+type Point = {
+    x: number;
+    y: number;
+};
+
 export type TypeShape = "circle" | "rectangle" | "line" | "pencil" | "text";
 
 export type typeColor = "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d";
@@ -61,6 +67,12 @@ export class MakeCanvas {
     private currentOffsetY: number = 0;
     private panOffsetX: number;
     private panOffsetY: number;
+    private scale: number;
+    private scaleOffsetX: number;
+    private scaleOffsetY: number;
+    private mousePosX: number = 0;
+    private mousePosY: number = 0;
+    private viewportTopLeft: Point = { x: 0, y: 0 };
 
 
     private clientId: string = Math.random().toString(36).substr(2, 9);
@@ -72,6 +84,10 @@ export class MakeCanvas {
         this.existingShape = [];
         this.roomId = roomId;
         this.socket = socket;
+
+        this.scale = 1;
+        this.scaleOffsetX = 0;
+        this.scaleOffsetY = 0;
 
         this.panOffsetX = 0;
         this.panOffsetY = 0;
@@ -113,6 +129,11 @@ export class MakeCanvas {
     setTool = (tool: TypeShape) => {
         this.selectedShape = tool;
         this.shape.setShape(this.selectedShape);
+    }
+
+    setMousePos = (x: number, y: number) => {
+        this.mousePosX = x;
+        this.mousePosY = y;
     }
 
     setStrockColor = (strokeColor: typeColor) => {
@@ -202,6 +223,7 @@ export class MakeCanvas {
     }
 
     handleMouseMove = (event: MouseEvent) => {
+        this.setMousePos(event.clientX, event.clientY);
         if (this.panClicked) {
             this.currentOffsetX = event.clientX;
             this.currentOffsetY = event.clientY;
@@ -229,6 +251,41 @@ export class MakeCanvas {
             }
         }
 
+    }
+
+    addPoints = (p1: Point, p2: Point) => {
+        return { x: p1.x + p2.x, y: p1.y + p2.y };
+    }
+
+    setViewportTopLeft = (point: Point) => {
+        this.viewportTopLeft = {
+            x: point.x,
+            y: point.y
+        }
+    }
+
+
+
+    handleMouseWheel = (event: WheelEvent) => {
+        // Calculate zoom factor
+        const zoom = 1 - event.deltaY / 500;
+        // Get mouse coordinates relative to the canvas
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+    
+        // Adjust panOffset so that the point under the mouse remains stationary.
+        // This formula comes from the idea:
+        // newPanOffset = mousePos - zoom * (mousePos - currentPanOffset)
+        this.panOffsetX = mouseX - zoom * (mouseX - this.panOffsetX);
+        this.panOffsetY = mouseY - zoom * (mouseY - this.panOffsetY);
+        this.shape.setPanOffset(this.panOffsetX, this.panOffsetY);
+    
+        // Update scale
+        this.scale *= zoom;
+        this.shape.setScale(this.scale);
+    
+        // Redraw with the new transformation
+        this.redrawCanvas();
     }
 
     handleKeydown = (event: KeyboardEvent) => {
@@ -262,8 +319,9 @@ export class MakeCanvas {
         this.canvas.addEventListener("mousedown", this.handleMouseDown);
         this.canvas.addEventListener("mouseup", this.handleMouseUp);
         this.canvas.addEventListener("mousemove", this.handleMouseMove);
-        this.textarea.addEventListener("keydown", this.handleKeydown)
-        this.textarea.addEventListener("input", this.handleTextareaSize)
+        this.canvas.addEventListener("wheel", this.handleMouseWheel)
+        this.textarea.addEventListener("keydown", this.handleKeydown);
+        this.textarea.addEventListener("input", this.handleTextareaSize);
     }
 
     redrawCanvas() {
@@ -274,6 +332,7 @@ export class MakeCanvas {
 
         this.ctx.save();
         this.ctx.translate(this.panOffsetX, this.panOffsetY);
+        this.ctx.scale(this.scale, this.scale);
 
         console.log(this.existingShape)
         this.existingShape.map((s) => {

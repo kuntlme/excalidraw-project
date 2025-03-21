@@ -14,6 +14,7 @@ export class Shape {
 
     private panOffsetX: number;
     private panOffsetY: number;
+    private scale: number = 1;
 
 
     constructor(ctx: CanvasRenderingContext2D, panOffsetX: number, panOffsetY: number) {
@@ -25,6 +26,9 @@ export class Shape {
     setPanOffset(panOffsetX: number, panOffsetY: number){
         this.panOffsetX = panOffsetX;
         this.panOffsetY = panOffsetY;
+    }
+    setScale(scale: number){
+        this.scale = scale;
     }
 
     setShape(shape: TypeShape) {
@@ -123,11 +127,11 @@ export class Shape {
             case "circle": {
                 let centerX = ((this.currentX + this.startX) / 2);
                 let centerY = (this.currentY + this.startY) / 2;
-                let radius = Math.abs(centerX - this.startX);
+                let radius = Math.abs(centerX - this.startX) / this.scale;
                 shapObject = {
                     type: "circle",
-                    x: centerX - this.panOffsetX,
-                    y: centerY - this.panOffsetY,
+                    x: (centerX - this.panOffsetX) / this.scale,
+                    y: (centerY - this.panOffsetY) / this.scale,
                     radius: radius,
                     startAngle: 0,
                     endAngle: 2 * Math.PI,
@@ -139,10 +143,10 @@ export class Shape {
             case "rectangle": {
                 shapObject = {
                     type: "rectangle",
-                    x: this.startX - this.panOffsetX,
-                    y: this.startY - this.panOffsetY,
-                    width: this.currentX - this.startX,
-                    height: this.currentY - this.startY,
+                    x: (this.startX - this.panOffsetX) / this.scale,
+                    y: (this.startY - this.panOffsetY) / this.scale,
+                    width: (this.currentX - this.startX) / this.scale,
+                    height: (this.currentY - this.startY) / this.scale,
                     strockColor: this.strockColor
                 }
                 break;
@@ -150,10 +154,10 @@ export class Shape {
             case "line": {
                 shapObject = {
                     type: "line",
-                    movetoX: this.startX - this.panOffsetX,
-                    movetoY: this.startY - this.panOffsetY,
-                    linetoX: this.currentX - this.panOffsetX,
-                    linetoY: this.currentY - this.panOffsetY,
+                    movetoX: (this.startX - this.panOffsetX) / this.scale,
+                    movetoY: (this.startY - this.panOffsetY) / this.scale,
+                    linetoX: (this.currentX - this.panOffsetX) / this.scale,
+                    linetoY: (this.currentY - this.panOffsetY) / this.scale,
                     strockColor: this.strockColor
                 }
                 break;
@@ -161,10 +165,10 @@ export class Shape {
             case "pencil": {
                 shapObject = {
                     type: "pencil",
-                    movetoX: this.startX - this.panOffsetX,
-                    movetoY: this.startY - this.panOffsetY,
-                    linetoX: this.currentX - this.panOffsetX,
-                    linetoY: this.currentY - this.panOffsetY,
+                    movetoX: (this.startX - this.panOffsetX) / this.scale,
+                    movetoY: (this.startY - this.panOffsetY) / this.scale,
+                    linetoX: (this.currentX - this.panOffsetX) / this.scale,
+                    linetoY: (this.currentY - this.panOffsetY) / this.scale,
                     strockColor: this.strockColor
                 }
                 break;
@@ -173,9 +177,9 @@ export class Shape {
                 shapObject = {
                     type: "text",
                     content: this.text,
-                    x: this.startX - this.panOffsetX,
-                    y: this.startY - this.panOffsetY,
-                    size: this.textSize,
+                    x: (this.startX - this.panOffsetX) / this.scale,
+                    y: (this.startY - this.panOffsetY) /this.scale,
+                    size: this.textSize / this.scale,
                     fillColor: this.strockColor
                 }
                 break;
