@@ -1,84 +1,104 @@
-# Turborepo starter
+# Draw Project
 
-This Turborepo starter is maintained by the Turborepo core team.
+This project is a collaborative drawing application built using Next.js, TypeScript, and WebSockets. It allows multiple users to draw on a shared canvas in real-time.
 
-## Using this example
+## Project Structure
 
-Run the following command:
+The project is organized into several packages and applications:
 
-```sh
-npx create-turbo@latest
+- **apps/**: Contains the main applications of the project.
+  - **excalidraw-frontend/**: The frontend application built with Next.js.
+  - **http-backend/**: The HTTP backend server.
+  - **web/**: Another frontend application built with Next.js.
+  - **ws-backend/**: The WebSocket backend server.
+- **packages/**: Contains shared packages used by the applications.
+  - **backend-common/**: Common utilities for backend applications.
+  - **common/**: Common utilities for both frontend and backend applications.
+  - **db/**: Database-related code and Prisma schema.
+  - **eslint-config/**: Shared ESLint configuration.
+  - **typescript-config/**: Shared TypeScript configuration.
+  - **ui/**: Shared UI components.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- pnpm (preferred package manager)
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+$ git clone https://github.com/Kuntalmajee2557/excalidraw-project.git
+$ cd draw-project
 ```
 
-## What's inside?
+2. Install dependencies:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```bash
+$ pnpm install
 ```
 
-### Develop
+### Running the Applications
 
-To develop all apps and packages, run the following command:
+#### Frontend (excalidraw-frontend)
 
-```
-cd my-turborepo
-pnpm dev
-```
+1. Navigate to the frontend directory:
 
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```bash
+$ cd apps/excalidraw-frontend
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+2. Run the development server:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-npx turbo link
+```bash
+$ pnpm dev
 ```
 
-## Useful Links
+3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Learn more about the power of Turborepo:
+#### HTTP Backend
 
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+1. Navigate to the HTTP backend directory:
+
+```bash
+$ cd apps/http-backend
+```
+
+2. Start the server:
+
+```bash
+$ pnpm start
+```
+
+#### WebSocket Backend
+
+1. Navigate to the WebSocket backend directory:
+
+```bash
+$ cd apps/ws-backend
+```
+
+2. Start the server:
+
+```bash
+$ pnpm start
+```
+
+## Learn More
+
+To learn more about the technologies used in this project, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/) - learn about TypeScript.
+- [Prisma Documentation](https://www.prisma.io/docs/) - learn about Prisma.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License.
