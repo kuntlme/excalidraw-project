@@ -45,7 +45,7 @@ type Point = {
     y: number;
 };
 
-export type TypeShape = "circle" | "rectangle" | "line" | "pencil" | "text";
+export type TypeShape = "circle" | "rectangle" | "line" | "pencil" | "text" | "eraser";
 
 export type typeColor = "#f7f9f9" | "#cb4335" | "#a569bd" | "#58d68d";
 
@@ -73,7 +73,7 @@ export class MakeCanvas {
     private mousePosX: number = 0;
     private mousePosY: number = 0;
     private viewportTopLeft: Point = { x: 0, y: 0 };
-
+    private onZoomChange?: (scale: number) => void;
 
     private clientId: string = Math.random().toString(36).substr(2, 9);
 
@@ -136,6 +136,45 @@ export class MakeCanvas {
         this.mousePosY = y;
     }
 
+    zoomIn = () => {
+        const zoom = 1.2; // Zoom in factor
+        const mouseX = this.canvas.width / 2;  // Zoom center X
+        const mouseY = this.canvas.height / 2; // Zoom center Y
+
+        // Apply the same zoom logic as handleMouseWheel
+        this.panOffsetX = mouseX - zoom * (mouseX - this.panOffsetX);
+        this.panOffsetY = mouseY - zoom * (mouseY - this.panOffsetY);
+        this.shape.setPanOffset(this.panOffsetX, this.panOffsetY);
+
+        this.scale *= zoom;
+        this.shape.setScale(this.scale);
+
+        this.onZoomChange?.(this.getScale());
+
+        this.redrawCanvas();
+    }
+
+    zoomOut = () => {
+        const zoom = 0.8; // Zoom out factor
+        const mouseX = this.canvas.width / 2;
+        const mouseY = this.canvas.height / 2;
+
+        this.panOffsetX = mouseX - zoom * (mouseX - this.panOffsetX);
+        this.panOffsetY = mouseY - zoom * (mouseY - this.panOffsetY);
+        this.shape.setPanOffset(this.panOffsetX, this.panOffsetY);
+
+        this.scale *= zoom;
+        this.shape.setScale(this.scale);
+
+        this.onZoomChange?.(this.getScale());
+
+        this.redrawCanvas();
+    }
+
+    getScale = () => {
+        return Math.round(this.scale * 100);
+    }
+
     setStrockColor = (strokeColor: typeColor) => {
         this.strokeColor = strokeColor;
         this.ctx.strokeStyle = this.strokeColor;
@@ -165,6 +204,106 @@ export class MakeCanvas {
         this.redrawCanvas();
 
         console.log("{" + this.panOffsetX + ", " + this.panOffsetY + "}");
+    }
+
+
+    // A helper function to check if a point is inside a rectangle shape
+    isPointInRectangle(point: { x: number; y: number }, shape: { x: number; y: number; width: number; height: number }): boolean {
+        return (
+            point.x >= shape.x &&
+            point.x <= shape.x + shape.width &&
+            point.y >= shape.y &&
+            point.y <= shape.y + shape.height
+        );
+    }
+
+    // A sample hit test for a circle
+    isPointInCircle(point: { x: number; y: number }, shape: { x: number; y: number; radius: number }): boolean {
+        const dist = Math.sqrt(Math.pow(point.x - shape.x, 2) + Math.pow(point.y - shape.y, 2));
+        return dist <= shape.radius;
+    }
+
+    // General collision detection function for different shapes
+    isShapeHitByEraser(shape: shapetype | null | undefined, eraserPoint: { x: number; y: number }): boolean {
+        if(!shape) return false;
+        
+        // Transform eraser point to account for pan and scale
+        const transformedPoint = {
+            x: (eraserPoint.x - this.panOffsetX) / this.scale,
+            y: (eraserPoint.y - this.panOffsetY) / this.scale
+        };
+
+        switch (shape.type) {
+            case "rectangle":
+                return this.isPointInRectangle(transformedPoint, shape);
+            case "circle":
+                return this.isPointInCircle(transformedPoint, shape);
+            case "line":
+            case "pencil": {
+                // For lines, implement a more accurate line segment hit test
+                const lineStart = { x: shape.movetoX, y: shape.movetoY };
+                const lineEnd = { x: shape.linetoX, y: shape.linetoY };
+                return this.isPointNearLine(transformedPoint, lineStart, lineEnd, 5 / this.scale); // 5 is the hit tolerance
+            }
+            case "text": {
+                const textWidth = shape.content.length * shape.size * 10;
+                const textHeight = shape.size * 15;
+                return this.isPointInRectangle(transformedPoint, 
+                    { x: shape.x, y: shape.y, width: textWidth, height: textHeight });
+            }
+            default:
+                return false;
+        }
+    }
+
+    // Add this new helper method for more accurate line hit testing
+    isPointNearLine(point: Point, lineStart: Point, lineEnd: Point, tolerance: number): boolean {
+        // Calculate the distance from point to line segment
+        const A = point.x - lineStart.x;
+        const B = point.y - lineStart.y;
+        const C = lineEnd.x - lineStart.x;
+        const D = lineEnd.y - lineStart.y;
+
+        const dot = A * C + B * D;
+        const lenSq = C * C + D * D;
+        let param = -1;
+
+        if (lenSq !== 0) {
+            param = dot / lenSq;
+        }
+
+        let xx, yy;
+
+        if (param < 0) {
+            xx = lineStart.x;
+            yy = lineStart.y;
+        } else if (param > 1) {
+            xx = lineEnd.x;
+            yy = lineEnd.y;
+        } else {
+            xx = lineStart.x + param * C;
+            yy = lineStart.y + param * D;
+        }
+
+        const dx = point.x - xx;
+        const dy = point.y - yy;
+
+        return Math.sqrt(dx * dx + dy * dy) <= tolerance;
+    }
+
+    // In your eraser mouse move handler:
+    handleEraserMouseMove = (event: MouseEvent) => {
+        // Get the current eraser point (you might need to adjust coordinates for canvas scale/translation)
+        const eraserPoint = { x: event.clientX, y: event.clientY };
+
+        // Filter out any shapes that the eraser touches
+        this.existingShape = this.existingShape.filter(shape => {
+            // If the eraser touches the shape, remove it (return false)
+            return !this.isShapeHitByEraser(shape, eraserPoint);
+        });
+
+        // Redraw canvas after removal
+        this.redrawCanvas();
     }
 
     handleMouseDown = (event: MouseEvent) => {
@@ -207,7 +346,6 @@ export class MakeCanvas {
                 this.shape.setCurrentVertex(event.clientX, event.clientY);
                 const currentShape = this.shape.getShape() as shapetype;
                 console.log("currentShape ", currentShape);
-                debugger
                 this.existingShape.push(currentShape);
 
                 this.redrawCanvas()
@@ -230,6 +368,9 @@ export class MakeCanvas {
             this.makeOffset();
             this.startOffsetX = event.clientX;
             this.startOffsetY = event.clientY;
+        }
+        else if (this.selectedShape === "eraser" && this.clicked) {
+            this.handleEraserMouseMove(event);
         }
         else {
             if (this.clicked) {
@@ -254,7 +395,7 @@ export class MakeCanvas {
     }
 
     addPoints = (p1: Point, p2: Point) => {
-        return { x: p1.x + p2.x, y: p1.y + p2.y };
+        return { x: p1.x + p2.x, y: p2.y + p2.y };
     }
 
     setViewportTopLeft = (point: Point) => {
@@ -264,26 +405,27 @@ export class MakeCanvas {
         }
     }
 
-
-
     handleMouseWheel = (event: WheelEvent) => {
         // Calculate zoom factor
         const zoom = 1 - event.deltaY / 500;
         // Get mouse coordinates relative to the canvas
         const mouseX = event.clientX;
         const mouseY = event.clientY;
-    
+
         // Adjust panOffset so that the point under the mouse remains stationary.
         // This formula comes from the idea:
         // newPanOffset = mousePos - zoom * (mousePos - currentPanOffset)
         this.panOffsetX = mouseX - zoom * (mouseX - this.panOffsetX);
         this.panOffsetY = mouseY - zoom * (mouseY - this.panOffsetY);
         this.shape.setPanOffset(this.panOffsetX, this.panOffsetY);
-    
+
         // Update scale
         this.scale *= zoom;
         this.shape.setScale(this.scale);
-    
+
+        // Notify about zoom change
+        this.onZoomChange?.(this.getScale());
+
         // Redraw with the new transformation
         this.redrawCanvas();
     }
@@ -333,9 +475,10 @@ export class MakeCanvas {
         this.ctx.save();
         this.ctx.translate(this.panOffsetX, this.panOffsetY);
         this.ctx.scale(this.scale, this.scale);
-
         console.log(this.existingShape)
-        this.existingShape.map((s) => {
+        this.existingShape
+        .filter(shape => shape !== null && shape !== undefined)
+        .map((s) => {
             switch (s.type) {
                 case "circle": {
                     this.ctx.strokeStyle = s.strockColor;
@@ -383,6 +526,10 @@ export class MakeCanvas {
             }
         })
         this.ctx.restore();
+    }
+
+    setZoomChangeCallback(callback: (scale: number) => void) {
+        this.onZoomChange = callback;
     }
 
 }
