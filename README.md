@@ -2,6 +2,9 @@
 
 This project is a collaborative drawing application built using Next.js, TypeScript, and WebSockets. It allows multiple users to draw on a shared canvas in real-time.
 
+![Draw Project Demo](/docs/images/demo.png)
+*A preview of the collaborative drawing interface*
+
 ## Project Structure
 
 The project is organized into several packages and applications:
