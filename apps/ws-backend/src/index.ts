@@ -2,6 +2,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import jwt, { decode, JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config"
 import { prismaClient } from "@repo/db/client"
+import axios from 'axios';
 
 const wss = new WebSocketServer({ port: 5000 });
 
@@ -90,14 +91,7 @@ wss.on('connection', function connection(ws, request) {
       const roomId = parsedData.roomId;
       const message = parsedData.message;
 
-      //make chat in database
-      // await prismaClient.chat.create({
-      //   data:{
-      //     roomId: roomId,
-      //     message: message,
-      //     userId: userId
-      //   }
-      // })
+
       //spread the chat to others
       users.forEach(user => {
         if (user.rooms.includes(parsedData.roomId)) {
@@ -109,6 +103,24 @@ wss.on('connection', function connection(ws, request) {
           }))
         }
       })
+
+
+      //make chat in database
+      try {
+        const response = await axios.post("http://localhost:8080/chat",
+          {
+            roomId: Number(roomId),
+            message: message.toString(),
+          },
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          })
+        console.log(response.data);
+      } catch (error) {
+        console.log("error in creating chat")
+      }
     }
   });
 
