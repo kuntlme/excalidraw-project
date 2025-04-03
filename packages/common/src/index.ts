@@ -14,3 +14,12 @@ export const signinSchema = z.object({
 export const CreateRoomSchema = z.object({
     name: z.string().min(3).max(20)
 })
+
+export const CreateChatSchema = z.object({
+    roomId: z.number(),
+    message: z.string()
+})
+
+export const GetChatSchema = z.object({
+    roomId: z.number()
+})

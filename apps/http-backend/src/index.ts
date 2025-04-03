@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 import { Request, Response } from "express";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { middleware } from "./middleware";
-import { CreateRoomSchema, createUserSchema, signinSchema } from "@repo/common/types"
+import { CreateChatSchema, CreateRoomSchema, createUserSchema, GetChatSchema, signinSchema } from "@repo/common/types"
 import { prismaClient } from "@repo/db/client"
 
 const app = express();
@@ -123,6 +123,80 @@ app.post("/room", middleware, async (req: Request, res: Response) => {
     return;
 })
 
+app.get("/room", middleware, async (req: Request, res: Response) => {
+    const userId = req.userId;
+    if (!userId) {
+        res.status(400).json({ message: "User ID is missing" });
+        return;
+    }
+
+    const rooms = await prismaClient.room.findMany({
+        where: {
+            adminId: userId
+        }
+    })
+
+    res.json({
+        rooms: rooms
+    })
+    return;
+    
+})
+
+app.post("/chat", middleware, async (req: Request, res: Response) => {
+    const userId = req.userId;
+    if (!userId) {
+        res.status(400).json({ message: "User ID is missing" });
+        return;
+    }
+
+    const parsedData = CreateChatSchema.safeParse(req.body);
+    if (!parsedData.success) {
+        res.json({ message: "invalid input" });
+        return;
+    }
+
+    const chat = await prismaClient.chat.create({
+        data: {
+            roomId: parsedData.data.roomId,
+            message: parsedData.data.message,
+            userId: userId
+        }
+    })
+
+    res.json({
+        message: "chat created",
+        chat: chat
+    })
+    return;
+})
+
+app.get("/chat", middleware, async (req: Request, res: Response) => {
+    const userId = req.userId;
+    if (!userId) {
+        res.status(400).json({ message: "User ID is missing" });
+        return;
+    }
+
+    const parsedData = GetChatSchema.safeParse(req.body);
+    if (!parsedData.success) {
+        res.json({ message: "invalid input" });
+        return;
+    }
+
+    const chats = await prismaClient.chat.findMany({
+        where: {
+            roomId: parsedData.data.roomId
+        }
+    })  
+
+    res.json({
+        chats: chats
+    })
+    return;
+    
+})
+
 app.listen(8080, () => {
-    console.log("listening the port");
+    console.log("listening the port 8080");
 })
