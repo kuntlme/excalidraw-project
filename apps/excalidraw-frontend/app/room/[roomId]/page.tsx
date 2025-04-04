@@ -1,5 +1,4 @@
 import RoomCanvas from '@/components/roomCanvas';
-import initDraw from '@/draw';
 
 interface Params {
   params: {

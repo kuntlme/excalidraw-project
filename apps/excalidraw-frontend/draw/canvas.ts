@@ -1,5 +1,8 @@
 import { eventNames } from "process";
 import { Shape } from "./shape";
+import axios from "axios";
+import { json } from "stream/consumers";
+import { getChats } from "./getshapes";
 
 export type shapetype = {
     type: "rectangle";
@@ -98,13 +101,24 @@ export class MakeCanvas {
         this.textarea = textarea;
 
         this.initTextarea();
-        // this.init();
+        this.init();
         this.initSocket();
         this.mousehandler();
     }
 
     init() {
+        const fetchChats = async () => {
+            try {
+                const existingShapes = await getChats (this.roomId);
+                console.log(existingShapes);
+                this.existingShape = existingShapes;
+                this.redrawCanvas();
+            } catch (error) {
+                console.error("Failed to fetch room data:", error);
+            }
+        };
         //get the existingShape from backend
+        fetchChats();
     }
 
     initSocket() {
@@ -225,8 +239,8 @@ export class MakeCanvas {
 
     // General collision detection function for different shapes
     isShapeHitByEraser(shape: shapetype | null | undefined, eraserPoint: { x: number; y: number }): boolean {
-        if(!shape) return false;
-        
+        if (!shape) return false;
+
         // Transform eraser point to account for pan and scale
         const transformedPoint = {
             x: (eraserPoint.x - this.panOffsetX) / this.scale,
@@ -248,7 +262,7 @@ export class MakeCanvas {
             case "text": {
                 const textWidth = shape.content.length * shape.size * 10;
                 const textHeight = shape.size * 15;
-                return this.isPointInRectangle(transformedPoint, 
+                return this.isPointInRectangle(transformedPoint,
                     { x: shape.x, y: shape.y, width: textWidth, height: textHeight });
             }
             default:
@@ -477,54 +491,54 @@ export class MakeCanvas {
         this.ctx.scale(this.scale, this.scale);
         console.log(this.existingShape)
         this.existingShape
-        .filter(shape => shape !== null && shape !== undefined)
-        .map((s) => {
-            switch (s.type) {
-                case "circle": {
-                    this.ctx.strokeStyle = s.strockColor;
-                    this.ctx?.beginPath();
-                    this.ctx?.arc(s.x, s.y, s.radius, 0, 2 * Math.PI, true);
-                    this.ctx?.stroke();
-                    this.ctx.closePath();
-                    break;
-                }
-                case "rectangle": {
-                    this.ctx.strokeStyle = s.strockColor;
-                    this.ctx.strokeRect(s.x, s.y, s.width, s.height);
-                    break;
-                }
-                case "line": {
-                    this.ctx.strokeStyle = s.strockColor;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(s.movetoX, s.movetoY);
-                    this.ctx.lineTo(s.linetoX, s.linetoY);
-                    // Draw the Path
-                    this.ctx.stroke();
-                    this.ctx.closePath();
-                    break;
-                }
-                case "pencil": {
-                    this.ctx.strokeStyle = s.strockColor;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(s.movetoX, s.movetoY);
-                    this.ctx.lineTo(s.linetoX, s.linetoY);
-                    // Draw the Path
-                    this.ctx.stroke();
-                    this.ctx.closePath();
-                    break;
-                }
-                case "text": {
-                    this.ctx.fillStyle = s.fillColor;
-                    if (this.ctx) {
-                        this.ctx.font = `${s.size * 15}px serif`;
+            .filter(shape => shape !== null && shape !== undefined)
+            .map((s) => {
+                switch (s.type) {
+                    case "circle": {
+                        this.ctx.strokeStyle = s.strockColor;
+                        this.ctx?.beginPath();
+                        this.ctx?.arc(s.x, s.y, s.radius, 0, 2 * Math.PI, true);
+                        this.ctx?.stroke();
+                        this.ctx.closePath();
+                        break;
                     }
-                    this.ctx.textBaseline = "top";
-                    const textOffset = s.size * 15 * 0.323;
-                    this.ctx.fillText(s.content, s.x, s.y + textOffset);
-                    break;
+                    case "rectangle": {
+                        this.ctx.strokeStyle = s.strockColor;
+                        this.ctx.strokeRect(s.x, s.y, s.width, s.height);
+                        break;
+                    }
+                    case "line": {
+                        this.ctx.strokeStyle = s.strockColor;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(s.movetoX, s.movetoY);
+                        this.ctx.lineTo(s.linetoX, s.linetoY);
+                        // Draw the Path
+                        this.ctx.stroke();
+                        this.ctx.closePath();
+                        break;
+                    }
+                    case "pencil": {
+                        this.ctx.strokeStyle = s.strockColor;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(s.movetoX, s.movetoY);
+                        this.ctx.lineTo(s.linetoX, s.linetoY);
+                        // Draw the Path
+                        this.ctx.stroke();
+                        this.ctx.closePath();
+                        break;
+                    }
+                    case "text": {
+                        this.ctx.fillStyle = s.fillColor;
+                        if (this.ctx) {
+                            this.ctx.font = `${s.size * 15}px serif`;
+                        }
+                        this.ctx.textBaseline = "top";
+                        const textOffset = s.size * 15 * 0.323;
+                        this.ctx.fillText(s.content, s.x, s.y + textOffset);
+                        break;
+                    }
                 }
-            }
-        })
+            })
         this.ctx.restore();
     }
 

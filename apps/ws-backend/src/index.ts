@@ -110,7 +110,7 @@ wss.on('connection', function connection(ws, request) {
         const response = await axios.post("http://localhost:8080/chat",
           {
             roomId: Number(roomId),
-            message: message.toString(),
+            message: JSON.stringify(message),
           },
           {
             headers: {

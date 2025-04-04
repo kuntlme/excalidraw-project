@@ -1,4 +1,5 @@
 import express from "express"
+import cors from "cors"
 import jwt from "jsonwebtoken"
 import { Request, Response } from "express";
 import { JWT_SECRET } from "@repo/backend-common/config";
@@ -8,6 +9,7 @@ import { prismaClient } from "@repo/db/client"
 
 const app = express();
 app.use(express.json())
+app.use(cors())
 
 app.post("/signup", async (req, res) => {
 
@@ -178,7 +180,7 @@ app.get("/chat", middleware, async (req: Request, res: Response) => {
         return;
     }
 
-    const parsedData = GetChatSchema.safeParse(req.body);
+    const parsedData = GetChatSchema.safeParse({ roomId: Number(req.query.roomId) });
     if (!parsedData.success) {
         res.json({ message: "invalid input" });
         return;

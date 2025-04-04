@@ -1,6 +1,9 @@
 "use client";
-import React, { FormEvent, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import Cookies from "js-cookie";
 
 interface IFormInput {
   username: string;
@@ -9,14 +12,31 @@ interface IFormInput {
 }
 
 const Signup = () => {
+  const router = useRouter();
   const [error, setError] = useState<any>("");
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { isSubmitting, errors },
   } = useForm<IFormInput>();
-  const handleSignup = (formData: IFormInput) => {
-    console.log("signup");
+  const handleSignup = async (formData: IFormInput) => {
+    try{
+      console.log(formData);
+      const response = await axios.post(`${process.env.BACKEND_URL}/signup`, {
+        name: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+      if(response.data.token){
+        Cookies.set("token", response.data.token);
+        router.push("/");
+      }
+    }catch(err:any){
+      setError(err.response || "Signup failed");
+      console.log(err.response);
+    }
+    
+
   };
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-stone-700 text-stone-200">
@@ -71,11 +91,11 @@ const Signup = () => {
             })}
           />
           {errors.password && <p className="text-red-400">{errors.password.message}</p>}
-          <button
+          <button disabled={isSubmitting}
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-md my-4"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 disabled:opacity-50"
           >
-            Signup
+            {isSubmitting ? "Signing up..." : "Signup"}
           </button>
         </form>
       </div>
