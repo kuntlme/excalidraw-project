@@ -3,7 +3,8 @@ import jwt, { decode, JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config"
 import { prismaClient } from "@repo/db/client"
 import axios from 'axios';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const wss = new WebSocketServer({ port: 5000 });
 
 interface user {
@@ -107,7 +108,7 @@ wss.on('connection', function connection(ws, request) {
 
       //make chat in database
       try {
-        const response = await axios.post("http://localhost:8080/chat",
+        const response = await axios.post(`${process.env.BACKEND_URL}/chat`,
           {
             roomId: Number(roomId),
             message: JSON.stringify(message),
