@@ -91,6 +91,7 @@ wss.on('connection', function connection(ws, request) {
     if (parsedData.type == "CHAT") {
       const roomId = parsedData.roomId;
       const message = parsedData.message;
+      const action = parsedData.action;
 
 
       //spread the chat to others
@@ -99,6 +100,7 @@ wss.on('connection', function connection(ws, request) {
           console.log("enter")
           user.ws.send(JSON.stringify({
             type: "CHAT",
+            action: action,
             message: message,
             roomId: roomId
           }))
@@ -108,17 +110,34 @@ wss.on('connection', function connection(ws, request) {
 
       //make chat in database
       try {
-        const response = await axios.post(`${process.env.BACKEND_URL}/chat`,
-          {
-            roomId: Number(roomId),
-            message: JSON.stringify(message),
-          },
-          {
+        if (parsedData.action == "draw") {
+          const response = await axios.post(`${process.env.BACKEND_URL}/chat`,
+            {
+              roomId: Number(roomId),
+              message: JSON.stringify(message),
+              messageId: parsedData.message.messageId
+            },
+            {
+              headers: {
+                "Authorization": `Bearer ${token}`
+              }
+            })
+          console.log(response.data);
+        }
+        else if (parsedData.action == "delete") {
+          const response = await axios.delete(`${process.env.BACKEND_URL}/chat`, {
             headers: {
               "Authorization": `Bearer ${token}`
             }
+            ,
+            data: {
+              roomId: Number(roomId),
+              messageId: message.messageId
+            }
           })
-        console.log(response.data);
+          console.log(response.data);
+        }
+
       } catch (error) {
         console.log("error in creating chat")
       }
