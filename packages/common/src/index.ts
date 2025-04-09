@@ -17,9 +17,15 @@ export const CreateRoomSchema = z.object({
 
 export const CreateChatSchema = z.object({
     roomId: z.number(),
-    message: z.string()
+    message: z.string(),
+    messageId: z.string()
 })
 
 export const GetChatSchema = z.object({
     roomId: z.number()
+})
+
+export const DeleteChatSchema = z.object({
+    roomId: z.number(),
+    messageId: z.string()
 })
