@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import { Request, Response } from "express";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { middleware } from "./middleware";
-import { CreateChatSchema, CreateRoomSchema, createUserSchema, GetChatSchema, signinSchema } from "@repo/common/types"
+import { CreateChatSchema, CreateRoomSchema, createUserSchema, DeleteChatSchema, GetChatSchema, signinSchema } from "@repo/common/types"
 import { prismaClient } from "@repo/db/client"
 
 const app = express();
@@ -162,6 +162,7 @@ app.post("/chat", middleware, async (req: Request, res: Response) => {
         data: {
             roomId: parsedData.data.roomId,
             message: parsedData.data.message,
+            messageId: parsedData.data.messageId,
             userId: userId
         }
     })
@@ -196,6 +197,34 @@ app.get("/chat", middleware, async (req: Request, res: Response) => {
         chats: chats
     })
     return;
+    
+})
+
+app.delete("/chat", middleware, async (req: Request, res: Response) => {
+    const userId = req.userId;
+    if (!userId) {
+        res.status(400).json({ message: "User ID is missing" });
+        return;
+    }
+
+    const parsedData = DeleteChatSchema.safeParse(req.body);
+    if (!parsedData.success) {
+        res.json({ message: "invalid input" });
+        return;
+    }
+
+    const chat = await prismaClient.chat.delete({
+        where: {
+            messageId: parsedData.data.messageId
+        }
+    })
+
+    res.json({
+        message: "chat deleted",
+        chat: chat
+    })
+    return;
+    
     
 })
 
