@@ -4,6 +4,18 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import Cookies from "js-cookie";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import Link from "next/link";
 
 interface IFormInput {
   username: string;
@@ -20,28 +32,26 @@ const Signup = () => {
     formState: { isSubmitting, errors },
   } = useForm<IFormInput>();
   const handleSignup = async (formData: IFormInput) => {
-    try{
+    try {
       console.log(formData);
       const response = await axios.post(`${process.env.BACKEND_URL}/signup`, {
         name: formData.username,
         email: formData.email,
         password: formData.password,
       });
-      if(response.data.token){
+      if (response.data.token) {
         Cookies.set("token", response.data.token);
         router.push("/");
       }
-    }catch(err:any){
+    } catch (err: any) {
       setError(err.response || "Signup failed");
       console.log(err.response);
     }
-    
-
   };
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-stone-700 text-stone-200">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-stone-200">
       <div className="w-1/5 flex flex-col items-center justify-center border border-stone-600 rounded-md p-4">
-        <h1 className="text-4xl font-bold font-serif my-10">SIGN UP</h1>
+         <h1 className="text-4xl font-bold font-serif my-10">SIGN UP</h1>
         <form
           onSubmit={handleSubmit(handleSignup)}
           className="flex flex-col gap-4"
@@ -99,6 +109,36 @@ const Signup = () => {
           </button>
         </form>
       </div>
+
+      {/* <Card className="w-1/5 bg-black border border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-white text-4xl">Signup</CardTitle>
+          <CardDescription>Signup to get started</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div>
+            <Label htmlFor="username" className="text-white">
+              Username
+            </Label>
+            <Input type="text"></Input>
+          </div>
+          <div>
+            <Label htmlFor="password" className="text-white">
+              Password
+            </Label>
+            <Input type="password"></Input>
+          </div>
+          <Button className="w-full">Signup</Button>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center justify-center">
+          <div className="mt-4 text-center text-sm text-white flex flex-row items-center justify-center">
+            Don&apos;t have an account?{" "}
+            <Link href="/signin" className="underline underline-offset-4 text-white">
+              Sign up
+            </Link>
+          </div>
+        </CardFooter>
+      </Card> */}
     </div>
   );
 };

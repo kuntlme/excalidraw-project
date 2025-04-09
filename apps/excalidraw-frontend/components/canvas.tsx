@@ -152,7 +152,7 @@ function Canvas({ roomId, socket }: CanvasPrps) {
               selectedCanvasRef.current.setTool("eraser");
               setSelectedShape("eraser");
             }
-            console.log("clicked text");
+            console.log("clicked eraser");
           }}
         >
           <Eraser size={28} />

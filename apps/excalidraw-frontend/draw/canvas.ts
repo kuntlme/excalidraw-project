@@ -3,9 +3,10 @@ import { Shape } from "./shape";
 import axios from "axios";
 import { json } from "stream/consumers";
 import { getChats } from "./getshapes";
-
+import { v4 as uuidv4 } from 'uuid';
 export type shapetype = {
     type: "rectangle";
+    messageId: string;
     x: number;
     y: number;
     width: number;
@@ -13,6 +14,7 @@ export type shapetype = {
     strockColor: typeColor
 } | {
     type: "circle";
+    messageId: string;
     x: number;
     y: number;
     radius: number;
@@ -22,6 +24,7 @@ export type shapetype = {
     strockColor: typeColor
 } | {
     type: "line",
+    messageId: string;
     movetoX: number,
     movetoY: number,
     linetoX: number,
@@ -29,6 +32,7 @@ export type shapetype = {
     strockColor: typeColor
 } | {
     type: "pencil",
+    messageId: string;
     movetoX: number,
     movetoY: number,
     linetoX: number,
@@ -36,6 +40,7 @@ export type shapetype = {
     strockColor: typeColor
 } | {
     type: "text",
+    messageId: string;
     content: string,
     x: number,
     y: number,
@@ -109,7 +114,7 @@ export class MakeCanvas {
     init() {
         const fetchChats = async () => {
             try {
-                const existingShapes = await getChats (this.roomId);
+                const existingShapes = await getChats(this.roomId);
                 console.log(existingShapes);
                 this.existingShape = existingShapes;
                 this.redrawCanvas();
@@ -125,9 +130,15 @@ export class MakeCanvas {
         if (this.socket) {
             this.socket.onmessage = (event) => {
                 const parsedData = JSON.parse(event.data);
+                console.log(parsedData);
                 if (parsedData.type === "CHAT") {
-                    this.existingShape.push(parsedData.message);
-                    this.redrawCanvas();
+                    if (parsedData.action === "draw") {
+                        this.existingShape.push(parsedData.message);
+                        this.redrawCanvas();
+                    } else if (parsedData.action === "delete") {
+                        this.existingShape = this.existingShape.filter(shape => shape.messageId !== parsedData.message.messageId);
+                        this.redrawCanvas();
+                    }
                 }
             }
         }
@@ -313,7 +324,20 @@ export class MakeCanvas {
         // Filter out any shapes that the eraser touches
         this.existingShape = this.existingShape.filter(shape => {
             // If the eraser touches the shape, remove it (return false)
-            return !this.isShapeHitByEraser(shape, eraserPoint);
+
+            const isTouch = this.isShapeHitByEraser(shape, eraserPoint);
+            console.log("isTouch", isTouch);
+            if (isTouch) {
+                //send socket message to delete the shape
+                this.socket.send(JSON.stringify({
+                    type: "CHAT",
+                    action: "delete",
+                    message: shape,
+                    roomId: this.roomId,
+                }));
+                console.log("delete shape", shape);
+            }
+            return !isTouch;
         });
 
         // Redraw canvas after removal
@@ -360,14 +384,18 @@ export class MakeCanvas {
                 this.shape.setCurrentVertex(event.clientX, event.clientY);
                 const currentShape = this.shape.getShape() as shapetype;
                 console.log("currentShape ", currentShape);
-                this.existingShape.push(currentShape);
+                if (this.selectedShape != "eraser") {
+                    this.existingShape.push(currentShape);
 
-                this.redrawCanvas()
-                this.socket.send(JSON.stringify({
-                    type: "CHAT",
-                    message: currentShape,
-                    roomId: this.roomId
-                }))
+                    this.redrawCanvas()
+
+                    this.socket.send(JSON.stringify({
+                        type: "CHAT",
+                        action: "draw",
+                        message: currentShape,
+                        roomId: this.roomId,
+                    }))
+                }
             }
         }
 
@@ -398,8 +426,9 @@ export class MakeCanvas {
                     this.redrawCanvas()
                     this.socket.send(JSON.stringify({
                         type: "CHAT",
+                        action: "draw",
                         message: currentShape,
-                        roomId: this.roomId
+                        roomId: this.roomId,
                     }))
                     this.shape.setStartVertex(event.clientX, event.clientY);
                 }
@@ -456,8 +485,9 @@ export class MakeCanvas {
                 this.redrawCanvas()
                 this.socket.send(JSON.stringify({
                     type: "CHAT",
+                    action: "draw",
                     message: currentShape,
-                    roomId: this.roomId
+                    roomId: this.roomId,
                 }))
             }
         }

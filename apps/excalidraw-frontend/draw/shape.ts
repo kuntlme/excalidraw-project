@@ -1,5 +1,5 @@
 import { shapetype, typeColor, TypeShape } from "./canvas";
-
+import { v4 as uuidv4 } from 'uuid';
 
 export class Shape {
     private ctx: CanvasRenderingContext2D | null = null;
@@ -23,11 +23,11 @@ export class Shape {
         this.panOffsetY = panOffsetY;
     }
 
-    setPanOffset(panOffsetX: number, panOffsetY: number){
+    setPanOffset(panOffsetX: number, panOffsetY: number) {
         this.panOffsetX = panOffsetX;
         this.panOffsetY = panOffsetY;
     }
-    setScale(scale: number){
+    setScale(scale: number) {
         this.scale = scale;
     }
 
@@ -55,7 +55,7 @@ export class Shape {
         this.text = text;
     }
 
-    setTextSize(textSize: number){
+    setTextSize(textSize: number) {
         this.textSize = textSize;
     }
 
@@ -129,6 +129,7 @@ export class Shape {
                 let centerY = (this.currentY + this.startY) / 2;
                 let radius = Math.abs(centerX - this.startX) / this.scale;
                 shapObject = {
+                    messageId: uuidv4(),
                     type: "circle",
                     x: (centerX - this.panOffsetX) / this.scale,
                     y: (centerY - this.panOffsetY) / this.scale,
@@ -142,6 +143,7 @@ export class Shape {
             }
             case "rectangle": {
                 shapObject = {
+                    messageId: uuidv4(),
                     type: "rectangle",
                     x: (this.startX - this.panOffsetX) / this.scale,
                     y: (this.startY - this.panOffsetY) / this.scale,
@@ -153,6 +155,7 @@ export class Shape {
             }
             case "line": {
                 shapObject = {
+                    messageId: uuidv4(),
                     type: "line",
                     movetoX: (this.startX - this.panOffsetX) / this.scale,
                     movetoY: (this.startY - this.panOffsetY) / this.scale,
@@ -164,6 +167,7 @@ export class Shape {
             }
             case "pencil": {
                 shapObject = {
+                    messageId: uuidv4(),
                     type: "pencil",
                     movetoX: (this.startX - this.panOffsetX) / this.scale,
                     movetoY: (this.startY - this.panOffsetY) / this.scale,
@@ -175,10 +179,11 @@ export class Shape {
             }
             case "text": {
                 shapObject = {
+                    messageId: uuidv4(),
                     type: "text",
                     content: this.text,
                     x: (this.startX - this.panOffsetX) / this.scale,
-                    y: (this.startY - this.panOffsetY) /this.scale,
+                    y: (this.startY - this.panOffsetY) / this.scale,
                     size: this.textSize / this.scale,
                     fillColor: this.strockColor
                 }

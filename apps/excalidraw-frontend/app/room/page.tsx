@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -30,19 +30,34 @@ const page = () => {
     fetchRooms();
   }, []);
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center h-screen bg-zinc-900 text-white">
       <h1>Rooms</h1>
-      <h2>Join Room</h2>
-      <input type="text" value={joinRoomId} onChange={(e) => setJoinRoomId(e.target.value)} />
-      <button onClick={() => router.push(`/room/${joinRoomId}`)} className="bg-blue-500 text-white p-2 rounded-md">Join room</button>
-      {Array.isArray(rooms) && rooms.map(room => (
-        <div key={room.id} className="border border-stone-600 rounded-md p-2">
-          <h2>{room.slug}</h2>
-          <p>{room.createdAt}</p>
-          <p>{room.adminId}</p>
-          <button onClick={() => router.push(`/room/${room.id}`)} className="bg-blue-500 text-white p-2 rounded-md">Join room</button>
-        </div>
-      ))}
+      <h2>Create Room</h2>
+      <input
+        type="text"
+        value={joinRoomId}
+        onChange={(e) => setJoinRoomId(e.target.value)}
+      />
+      <button
+        onClick={() => router.push(`/room/${joinRoomId}`)}
+        className="bg-blue-500 text-white p-2 rounded-md"
+      >
+        Join room
+      </button>
+      {Array.isArray(rooms) &&
+        rooms.map((room) => (
+          <div key={room.id} className="border border-stone-600 rounded-md p-2">
+            <h2>{room.slug}</h2>
+            <p>{room.createdAt}</p>
+            <p>{room.adminId}</p>
+            <button
+              onClick={() => router.push(`/room/${room.id}`)}
+              className="bg-blue-500 text-white p-2 rounded-md"
+            >
+              Join room
+            </button>
+          </div>
+        ))}
     </div>
   );
 };
