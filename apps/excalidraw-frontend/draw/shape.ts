@@ -87,7 +87,7 @@ export class Shape {
         }
     }
 
-    makeRect() {
+    makeRect() { 
         let width = this.currentX - this.startX;
         let height = this.currentY - this.startY;
         this.ctx?.strokeRect(this.startX, this.startY, width, height);
